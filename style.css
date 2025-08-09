@@ -1,48 +1,54 @@
 body {
     font-family: Arial, sans-serif;
-    margin: 20px;
+    background: #f4f4f4;
+    padding: 20px;
+}
+
+h1 {
+    text-align: center;
+}
+
+.container {
+    display: flex;
+    gap: 30px;
+    justify-content: center;
+    align-items: flex-start;
+    flex-wrap: wrap;
 }
 
 table {
     border-collapse: collapse;
-    margin-bottom: 40px;
-    width: 100%;
+    background: white;
+    box-shadow: 0px 0px 5px rgba(0,0,0,0.1);
     font-size: 14px;
-    text-align: center;
 }
 
 th, td {
-    border: 1px solid #999;
-    padding: 4px;
+    border: 1px solid #ccc;
+    padding: 5px;
+    text-align: center;
 }
 
 th {
+    background: #ddd;
+}
+
+button {
+    display: block;
+    margin: 20px auto;
+    padding: 10px 15px;
+    background: #4CAF50;
+    color: white;
+    border: none;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #45a049;
+}
+
+thead tr th[colspan] {
+    background: #bbb;
     font-weight: bold;
-}
-
-.header-main {
-    background-color: #c9daf8;
-}
-
-.header-sub {
-    background-color: #fce5cd;
-}
-
-.unavailable {
-    background-color: #f4cccc;
-    color: red;
-    font-weight: bold;
-}
-
-.gray {
-    background-color: #e6e6e6;
-}
-
-.empty {
-    background-color: #f9f9f9;
-}
-
-td[contenteditable="true"] {
-    background-color: #fff;
-    cursor: text;
 }

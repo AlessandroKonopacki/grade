@@ -1,130 +1,62 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8">
-<title>Distribuição de Professores</title>
-<link rel="stylesheet" href="styles.css">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Distribuição de Professores</title>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <h1>Distribuição de Professores</h1>
 
-<h2>Tabela de Professores e Disponibilidade</h2>
-<table id="tabelaProfessores">
-    <tr>
-        <th rowspan="2">Professor / Disciplina</th>
-        <th colspan="7" class="header-main">Turmas e Aulas Semanais</th>
-        <th colspan="30" class="header-sub">Dias e Horários (X = indisponível)</th>
-    </tr>
-    <tr>
-        <th>6º ano</th><th>7º ano</th><th>8º ano</th><th>9º ano</th>
-        <th>1º EM</th><th>2º EM</th><th>3º EM</th>
-        <th>Seg 1ª</th><th>Seg 2ª</th><th>Seg 3ª</th><th>Seg 4ª</th><th>Seg 5ª</th><th>Seg 6ª</th>
-        <th>Ter 1ª</th><th>Ter 2ª</th><th>Ter 3ª</th><th>Ter 4ª</th><th>Ter 5ª</th><th>Ter 6ª</th>
-        <th>Qua 1ª</th><th>Qua 2ª</th><th>Qua 3ª</th><th>Qua 4ª</th><th>Qua 5ª</th><th>Qua 6ª</th>
-        <th>Qui 1ª</th><th>Qui 2ª</th><th>Qui 3ª</th><th>Qui 4ª</th><th>Qui 5ª</th><th>Qui 6ª</th>
-        <th>Sex 1ª</th><th>Sex 2ª</th><th>Sex 3ª</th><th>Sex 4ª</th><th>Sex 5ª</th><th>Sex 6ª</th>
-    </tr>
-    <tr>
-        <td contenteditable="true">Português</td>
-        <td contenteditable="true">6</td><td contenteditable="true">6</td><td contenteditable="true">5</td><td contenteditable="true">6</td>
-        <td contenteditable="true">5</td><td contenteditable="true">4</td><td contenteditable="true">4</td>
-        <td contenteditable="true" class="unavailable">X</td><td contenteditable="true" class="unavailable">X</td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td>
-        <td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td>
-        <td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td>
-        <td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td>
-        <td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td>
-    </tr>
-    <!-- Mais professores podem ser adicionados copiando a linha acima -->
-</table>
+    <div class="container">
+        <div>
+            <h2>Professores</h2>
+            <table id="professoresTable">
+                <thead>
+                    <tr>
+                        <th>Professor</th>
+                        <th>6º ano</th>
+                        <th>7º ano</th>
+                        <th>8º ano</th>
+                        <th>9º ano</th>
+                        <th>1º EM</th>
+                        <th>2º EM</th>
+                        <th>3º EM</th>
+                        <th colspan="30">Disponibilidade (X = indisponível)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Preenchido pelo JS -->
+                </tbody>
+            </table>
+        </div>
 
-<h2>Grade Horária</h2>
-<table id="gradeHorario">
-    <tr>
-        <th>Dia</th><th>Aula</th>
-        <th>6º ano</th><th>7º ano</th><th>8º ano</th><th>9º ano</th>
-        <th>1º EM</th><th>2º EM</th><th>3º EM</th>
-    </tr>
-    <!-- Segunda-feira -->
-    <tr><td rowspan="6">Segunda</td><td>1ª aula</td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td></tr>
-    <tr><td>2ª aula</td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td></tr>
-    <tr><td>3ª aula</td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td></tr>
-    <tr><td>4ª aula</td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td></tr>
-    <tr><td>5ª aula</td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td></tr>
-    <tr><td>6ª aula</td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td><td contenteditable="true"></td></tr>
-</table>
+        <div>
+            <h2>Grade Horária</h2>
+            <table id="gradeTable">
+                <thead>
+                    <tr>
+                        <th>Dia</th>
+                        <th>Aula</th>
+                        <th>6º ano</th>
+                        <th>7º ano</th>
+                        <th>8º ano</th>
+                        <th>9º ano</th>
+                        <th>1º EM</th>
+                        <th>2º EM</th>
+                        <th>3º EM</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Preenchido pelo JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
 
-<button id="btnDistribuir">Distribuir Professores</button>
+    <button id="distribuirBtn">Distribuir Professores</button>
 
-<script>
-function distribuirProfessores() {
-    let tabela = document.getElementById("tabelaProfessores");
-    let linhas = tabela.querySelectorAll("tr");
-    let nomesProf = [];
-    let cargaProf = [];
-    let dispProf = [];
-
-    for (let i = 2; i < linhas.length; i++) { // pula cabeçalhos
-        let cols = linhas[i].querySelectorAll("td");
-        if (cols.length === 0) continue; // ignora linhas vazias
-        let nome = cols[0].innerText.trim();
-        if (!nome) continue; // ignora linhas sem nome
-        let cargas = [];
-        for (let c = 1; c <= 7; c++) {
-            cargas.push(parseInt(cols[c].innerText.trim()) || 0);
-        }
-        let disponibilidade = [];
-        for (let d = 8; d < cols.length; d++) {
-            disponibilidade.push(cols[d].innerText.trim().toUpperCase() !== "X");
-        }
-        nomesProf.push(nome);
-        cargaProf.push(cargas);
-        dispProf.push(disponibilidade);
-    }
-
-    // Monta a grade
-    let gradeTable = document.getElementById("gradeHorario");
-    let linhasGrade = gradeTable.querySelectorAll("tr");
-    let grade = [];
-    let dias = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"];
-    let linhaIndex = 1;
-
-    for (let dia = 0; dia < 5; dia++) {
-        for (let aula = 0; aula < 6; aula++) {
-            let row = linhasGrade[linhaIndex++];
-            let turmaStart = (aula === 0) ? 2 : 1;
-            let cols = row.querySelectorAll("td");
-            let turmaCols = (aula === 0) ? Array.from(cols).slice(2) : Array.from(cols).slice(1);
-            turmaCols.forEach((cell, turmaIndex) => {
-                grade.push({ dia: dias[dia], aula: `${aula+1}ª Aula`, turma: turmaIndex, cell: cell });
-            });
-        }
-    }
-
-    // Alocação
-    let teacherDayAula = {};
-    for (let slotIndex = 0; slotIndex < grade.length; slotIndex++) {
-        let slot = grade[slotIndex];
-        let diaAula = slot.dia + " " + slot.aula;
-        let assigned = false;
-
-        for (let i = 0; i < nomesProf.length; i++) {
-            if (cargaProf[i][slot.turma] > 0 && dispProf[i][slotIndex]) {
-                let nome = nomesProf[i];
-                if (!teacherDayAula[nome]) teacherDayAula[nome] = {};
-                if (!teacherDayAula[nome][diaAula]) {
-                    slot.cell.innerText = nome;
-                    cargaProf[i][slot.turma]--;
-                    teacherDayAula[nome][diaAula] = true;
-                    assigned = true;
-                    break;
-                }
-            }
-        }
-        if (!assigned) slot.cell.innerText = "0";
-    }
-}
-
-document.getElementById("btnDistribuir").addEventListener("click", distribuirProfessores);
-</script>
-
+    <script src="script.js"></script>
 </body>
 </html>
