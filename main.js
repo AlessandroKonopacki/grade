@@ -4,6 +4,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const cargaHorariaForm = document.getElementById('cargaHorariaForm');
     const cargaHorariaList = document.getElementById('cargaHorariaList');
     const gerarGradeBtn = document.getElementById('gerarGradeBtn');
+    const novaGradeBtn = document.getElementById('novaGradeBtn');
+    const trocarBtn = document.getElementById('trocarBtn');
     const gradeTableBody = document.getElementById('gradeTable').querySelector('tbody');
     const statusMessage = document.getElementById('statusMessage');
 
@@ -16,6 +18,16 @@ document.addEventListener('DOMContentLoaded', () => {
     let professores = JSON.parse(localStorage.getItem('professores')) || [];
     let cargasHorarias = JSON.parse(localStorage.getItem('cargasHorarias')) || [];
     let gradeHoraria = {};
+    let swapMode = false;
+    let selectedCell = null;
+
+    // Função auxiliar para embaralhar um array (algoritmo de Fisher-Yates)
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    }
 
     // Função para renderizar a lista de professores cadastrados
     function renderizarProfessores() {
@@ -57,6 +69,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 todasTurmas.forEach(turma => {
                     const tdProfessor = document.createElement('td');
+                    tdProfessor.dataset.dia = dia;
+                    tdProfessor.dataset.aula = i;
+                    tdProfessor.dataset.turma = turma;
                     const professor = gradeHoraria[dia]?.[i]?.[turma] || '';
                     tdProfessor.textContent = professor;
                     tr.appendChild(tdProfessor);
@@ -67,7 +82,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Função principal para o algoritmo de distribuição
-    function distribuirAulas() {
+    function distribuirAulas(shuffle = false) {
         if (professores.length === 0 || cargasHorarias.length === 0) {
             statusMessage.textContent = 'Por favor, cadastre professores e cargas horárias antes de gerar a grade.';
             statusMessage.style.color = 'orange';
@@ -87,12 +102,17 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             aulasRestantes[`${carga.turma}-${carga.disciplina}`] = {
                 aulas: carga.aulas,
-                limiteDiario: carga.limiteDiario, // Adiciona o limite diário
+                limiteDiario: carga.limiteDiario,
                 professor: professor
             };
         });
+
+        // Converte o objeto aulasRestantes para um array para poder embaralhar
+        let aulasArray = Object.keys(aulasRestantes).map(key => ({ chave: key, ...aulasRestantes[key] }));
+        if (shuffle) {
+            shuffleArray(aulasArray);
+        }
         
-        // Inicializa o rastreamento de aulas por disciplina e dia
         todasTurmas.forEach(turma => {
             aulasPorDisciplinaDia[turma] = {};
             diasDaSemana.forEach(dia => {
@@ -100,22 +120,19 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        // Tentar preencher a grade aula por aula
         for (const dia of diasDaSemana) {
             for (let i = 1; i <= aulasPorDia; i++) {
                 for (const turma of todasTurmas) {
-                    let alocado = false;
-                    for (const chave in aulasRestantes) {
-                        const { aulas, limiteDiario, professor } = aulasRestantes[chave];
+                    for (const aula of aulasArray) {
+                        const { aulas, limiteDiario, professor, chave } = aula;
                         const [turmaCarga, disciplinaCarga] = chave.split('-');
 
                         if (turmaCarga !== turma) continue;
                         if (aulas <= 0) continue;
 
                         const aulasHoje = aulasPorDisciplinaDia[turma][dia][disciplinaCarga] || 0;
-                        const podeTerMaisAulasHoje = aulasHoje < limiteDiario; // Usa o limite definido
+                        const podeTerMaisAulasHoje = aulasHoje < limiteDiario;
 
-                        // Verificações das condições
                         const podeAlocar = 
                             professor &&
                             professor.disponibilidade.includes(dia) &&
@@ -134,8 +151,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             gradeHoraria[dia][i][turma] = `${professor.nome} (${disciplinaCarga})`;
                             aulasRestantes[chave].aulas--;
                             aulasPorDisciplinaDia[turma][dia][disciplinaCarga] = aulasHoje + 1;
-                            alocado = true;
-                            break;
+                            break; // Sai do loop de aulas e tenta preencher o próximo slot
                         }
                     }
                 }
@@ -152,6 +168,125 @@ document.addEventListener('DOMContentLoaded', () => {
             statusMessage.style.color = 'green';
         }
         renderizarGrade();
+    }
+    
+    // Ferramenta de troca de professores
+    function handleTableClick(e) {
+        if (!swapMode) return;
+
+        const cell = e.target.closest('td[data-turma]');
+        if (!cell) return;
+
+        if (!selectedCell) {
+            selectedCell = cell;
+            cell.classList.add('grade-cell-selected');
+        } else {
+            if (selectedCell === cell) {
+                selectedCell.classList.remove('grade-cell-selected');
+                selectedCell = null;
+                return;
+            }
+
+            const cell1Data = {
+                dia: selectedCell.dataset.dia,
+                aula: selectedCell.dataset.aula,
+                turma: selectedCell.dataset.turma,
+                professorDisciplina: selectedCell.textContent
+            };
+
+            const cell2Data = {
+                dia: cell.dataset.dia,
+                aula: cell.dataset.aula,
+                turma: cell.dataset.turma,
+                professorDisciplina: cell.textContent
+            };
+
+            // Extrai nome do professor e disciplina
+            const getProfessorInfo = (text) => {
+                if (!text) return { nome: '', disciplina: '' };
+                const match = text.match(/(.*)\s\((.*)\)/);
+                return match ? { nome: match[1], disciplina: match[2].toLowerCase() } : { nome: text, disciplina: '' };
+            };
+            
+            const prof1 = getProfessorInfo(cell1Data.professorDisciplina);
+            const prof2 = getProfessorInfo(cell2Data.professorDisciplina);
+
+            const prof1Obj = professores.find(p => p.nome === prof1.nome);
+            const prof2Obj = professores.find(p => p.nome === prof2.nome);
+            
+            // Lógica de validação da troca
+            const isValidSwap = (prof1ToMove, prof2ToMove) => {
+                // Checa se o prof1 pode ir para o lugar do prof2
+                if (prof1ToMove.nome && !podeAlocar(prof1ToMove, cell2Data)) return false;
+                // Checa se o prof2 pode ir para o lugar do prof1
+                if (prof2ToMove.nome && !podeAlocar(prof2ToMove, cell1Data)) return false;
+
+                return true;
+            };
+
+            const podeAlocar = (professorObj, slotData) => {
+                // Se não há professor para alocar, é sempre válido
+                if (!professorObj || !professorObj.nome) return true;
+                
+                // Verifica a disponibilidade
+                if (!professorObj.disponibilidade.includes(slotData.dia)) {
+                    statusMessage.textContent = `Erro: ${professorObj.nome} não está disponível na ${slotData.dia}.`;
+                    statusMessage.style.color = 'red';
+                    return false;
+                }
+                
+                // Verifica o nível de ensino
+                const nivelValido = 
+                    (professorObj.nivelEnsino === 'Fundamental' && turmasFundamental.includes(slotData.turma)) ||
+                    (professorObj.nivelEnsino === 'Medio' && turmasMedio.includes(slotData.turma)) ||
+                    (professorObj.nivelEnsino === 'Ambos');
+                if (!nivelValido) {
+                    statusMessage.textContent = `Erro: ${professorObj.nome} não pode lecionar na turma ${slotData.turma}.`;
+                    statusMessage.style.color = 'red';
+                    return false;
+                }
+
+                // Verifica conflito de horário
+                const conflito = todasTurmas.some(turma => {
+                    if (turma !== slotData.turma && gradeHoraria[slotData.dia]?.[slotData.aula]?.[turma]?.includes(professorObj.nome)) {
+                        statusMessage.textContent = `Erro: ${professorObj.nome} já tem aula na ${turma} na ${slotData.dia}, ${slotData.aula}ª aula.`;
+                        statusMessage.style.color = 'red';
+                        return true;
+                    }
+                    return false;
+                });
+                if (conflito) return false;
+
+                // Verifica aulas consecutivas
+                const aulaAnterior = gradeHoraria[slotData.dia]?.[parseInt(slotData.aula) - 1]?.[slotData.turma];
+                const aulaPosterior = gradeHoraria[slotData.dia]?.[parseInt(slotData.aula) + 1]?.[slotData.turma];
+                if ((aulaAnterior && aulaAnterior.includes(professorObj.nome)) || (aulaPosterior && aulaPosterior.includes(professorObj.nome))) {
+                    statusMessage.textContent = `Erro: ${professorObj.nome} teria aulas consecutivas na ${slotData.turma}.`;
+                    statusMessage.style.color = 'red';
+                    return false;
+                }
+                
+                return true;
+            };
+
+            // Tenta a troca
+            if (isValidSwap(prof1Obj, prof2Obj)) {
+                // Atualiza o objeto gradeHoraria
+                gradeHoraria[cell1Data.dia][cell1Data.aula][cell1Data.turma] = cell2Data.professorDisciplina;
+                gradeHoraria[cell2Data.dia][cell2Data.aula][cell2Data.turma] = cell1Data.professorDisciplina;
+                
+                // Atualiza a interface
+                selectedCell.textContent = cell2Data.professorDisciplina;
+                cell.textContent = cell1Data.professorDisciplina;
+                
+                statusMessage.textContent = 'Troca realizada com sucesso!';
+                statusMessage.style.color = 'green';
+            }
+
+            // Limpa a seleção
+            selectedCell.classList.remove('grade-cell-selected');
+            selectedCell = null;
+        }
     }
 
     // ----- Funções de Verificação de Restrições -----
@@ -216,7 +351,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    // Evento para remover itens de ambas as listas
     document.addEventListener('click', (e) => {
         if (e.target.classList.contains('remove-btn')) {
             const index = e.target.dataset.index;
@@ -233,7 +367,26 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
-    gerarGradeBtn.addEventListener('click', distribuirAulas);
+    // Novos event listeners para os botões de ação
+    gerarGradeBtn.addEventListener('click', () => distribuirAulas(false));
+    novaGradeBtn.addEventListener('click', () => distribuirAulas(true));
+    trocarBtn.addEventListener('click', () => {
+        swapMode = !swapMode;
+        if (swapMode) {
+            trocarBtn.textContent = 'Desativar Troca';
+            statusMessage.textContent = 'Modo de troca ativado. Clique em duas células para trocar os professores.';
+            statusMessage.style.color = 'blue';
+        } else {
+            trocarBtn.textContent = 'Ativar Troca de Professores';
+            statusMessage.textContent = '';
+            if (selectedCell) {
+                selectedCell.classList.remove('grade-cell-selected');
+                selectedCell = null;
+            }
+        }
+    });
+    
+    gradeTableBody.addEventListener('click', handleTableClick);
 
     // Inicialização
     renderizarProfessores();

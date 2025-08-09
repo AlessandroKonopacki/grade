@@ -138,3 +138,22 @@ tbody tr:nth-child(even) {
     font-weight: bold;
     text-align: center;
 }
+
+/* Estilo para o grupo de botões */
+.button-group {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+/* Deixa os botões dentro do grupo menores e alinhados */
+.button-group .btn {
+    flex: 1;
+    width: auto;
+}
+
+/* Estilo para a célula selecionada na ferramenta de troca */
+.grade-cell-selected {
+    border: 2px solid #007bff;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
