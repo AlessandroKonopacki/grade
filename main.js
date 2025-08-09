@@ -1,45 +1,78 @@
-// Dados fictícios só para teste
-const dias = [
-    { dia: "Segunda", aulas: ["1ª Aula", "2ª Aula", "3ª Aula", "4ª Aula", "5ª Aula"] },
-    { dia: "Terça", aulas: ["1ª Aula", "2ª Aula", "3ª Aula", "4ª Aula", "5ª Aula"] },
-    { dia: "Quarta", aulas: ["1ª Aula", "2ª Aula", "3ª Aula", "4ª Aula", "5ª Aula"] },
-    { dia: "Quinta", aulas: ["1ª Aula", "2ª Aula", "3ª Aula", "4ª Aula", "5ª Aula"] },
-    { dia: "Sexta", aulas: ["1ª Aula", "2ª Aula", "3ª Aula", "4ª Aula", "5ª Aula"] }
-];
+document.addEventListener("DOMContentLoaded", () => {
+    const professoresTable = document.querySelector("#professoresTable tbody");
+    const gradeTable = document.querySelector("#gradeTable tbody");
 
-// Função para criar a tabela com células mescladas
-function montarTabela() {
-    const tbody = document.querySelector("#gradeHoraria tbody");
-    tbody.innerHTML = "";
+    // Exemplo de dados iniciais (você pode carregar de um banco ou JSON)
+    const professores = [
+        {
+            nome: "Português",
+            carga: [6, 6, 6, 6, 5, 6, 4],
+            disponibilidade: [
+                "X","X","","","","","", // Segunda
+                "","","","","","","",   // Terça
+                "","","","","","","",   // Quarta
+                "","","","","","","",   // Quinta
+                "","","","","","",""    // Sexta
+            ]
+        },
+        {
+            nome: "Matemática",
+            carga: [6, 4, 6, 4, 6, 4, 6],
+            disponibilidade: Array(30).fill("")
+        }
+    ];
 
-    dias.forEach(({ dia, aulas }) => {
-        aulas.forEach((aula, index) => {
+    const dias = ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira"];
+    const aulas = ["1ª aula", "2ª aula", "3ª aula", "4ª aula", "5ª aula", "6ª aula"];
+    const turmas = ["6º ano", "7º ano", "8º ano", "9º ano", "1º EM", "2º EM", "3º EM"];
+
+    // Monta tabela de professores
+    professores.forEach(prof => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td>${prof.nome}</td>
+            ${prof.carga.map(c => `<td>${c}</td>`).join("")}
+            ${prof.disponibilidade.map(d => `<td>${d}</td>`).join("")}
+        `;
+        professoresTable.appendChild(tr);
+    });
+
+    // Monta grade de horários
+    dias.forEach(dia => {
+        aulas.forEach(aula => {
             const tr = document.createElement("tr");
-
-            // Apenas na primeira aula do dia, cria a célula do dia com rowspan
-            if (index === 0) {
-                const tdDia = document.createElement("td");
-                tdDia.textContent = dia;
-                tdDia.rowSpan = aulas.length;
-                tr.appendChild(tdDia);
-            }
-
-            // Coluna da aula
-            const tdAula = document.createElement("td");
-            tdAula.textContent = aula;
-            tr.appendChild(tdAula);
-
-            // Colunas das turmas (por enquanto, deixei em branco)
-            for (let i = 0; i < 7; i++) {
-                const tdTurma = document.createElement("td");
-                tdTurma.textContent = ""; // Aqui depois entra o professor atribuído
-                tr.appendChild(tdTurma);
-            }
-
-            tbody.appendChild(tr);
+            tr.innerHTML = `
+                <td>${dia}</td>
+                <td>${aula}</td>
+                ${turmas.map(() => `<td></td>`).join("")}
+            `;
+            gradeTable.appendChild(tr);
         });
     });
-}
 
-// Executa ao carregar
-montarTabela();
+    // Função de distribuição (bem simplificada)
+    document.querySelector("#distribuirBtn").addEventListener("click", () => {
+        const rows = gradeTable.querySelectorAll("tr");
+
+        rows.forEach((row, rowIndex) => {
+            const diaIndex = Math.floor(rowIndex / aulas.length);
+            const aulaIndex = rowIndex % aulas.length;
+
+            turmas.forEach((_, turmaIndex) => {
+                let professorDisponivel = professores.find(p => 
+                    p.carga[turmaIndex] > 0 && 
+                    p.disponibilidade[diaIndex * aulas.length + aulaIndex] !== "X"
+                );
+
+                if (professorDisponivel) {
+                    row.cells[2 + turmaIndex].textContent = professorDisponivel.nome;
+                    professorDisponivel.carga[turmaIndex]--;
+                } else {
+                    row.cells[2 + turmaIndex].textContent = "0";
+                }
+            });
+        });
+
+        alert("Distribuição concluída!");
+    });
+});

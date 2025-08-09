@@ -7,27 +7,56 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>Distribuição Automática de Professores</h1>
+    <h1>Distribuição de Professores</h1>
 
-    <table id="gradeHoraria">
-        <thead>
-            <tr>
-                <th>Dia</th>
-                <th>Aula</th>
-                <th>6º Ano</th>
-                <th>7º Ano</th>
-                <th>8º Ano</th>
-                <th>9º Ano</th>
-                <th>1ª Série</th>
-                <th>2ª Série</th>
-                <th>3ª Série</th>
-            </tr>
-        </thead>
-        <tbody>
-            <!-- Preenchido dinamicamente pelo script.js -->
-        </tbody>
-    </table>
+    <div class="container">
+        <div>
+            <h2>Professores</h2>
+            <table id="professoresTable">
+                <thead>
+                    <tr>
+                        <th>Professor</th>
+                        <th>6º ano</th>
+                        <th>7º ano</th>
+                        <th>8º ano</th>
+                        <th>9º ano</th>
+                        <th>1º EM</th>
+                        <th>2º EM</th>
+                        <th>3º EM</th>
+                        <th colspan="30">Disponibilidade (X = indisponível)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Preenchido pelo JS -->
+                </tbody>
+            </table>
+        </div>
 
-    <script src="main.js" defer></script>
+        <div>
+            <h2>Grade Horária</h2>
+            <table id="gradeTable">
+                <thead>
+                    <tr>
+                        <th>Dia</th>
+                        <th>Aula</th>
+                        <th>6º ano</th>
+                        <th>7º ano</th>
+                        <th>8º ano</th>
+                        <th>9º ano</th>
+                        <th>1º EM</th>
+                        <th>2º EM</th>
+                        <th>3º EM</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Preenchido pelo JS -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <button id="distribuirBtn">Distribuir Professores</button>
+
+    <script src="main.js"></script>
 </body>
 </html>
