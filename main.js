@@ -15,107 +15,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const turmasMedio = ['1º EM', '2º EM', '3º EM'];
     const todasTurmas = [...turmasFundamental, ...turmasMedio];
 
-  // ATENÇÃO: Substitua as suas variáveis 'professores' e 'cargasHorarias' por este código para realizar o teste.
-// Estes dados foram extraídos da imagem fornecida, com base nas restrições e regras do programa.
-// Nível de Ensino: Inferido a partir das turmas que cada professor leciona.
-// Disponibilidade: Dias com "X" na imagem foram considerados indisponíveis.
-// Limite de Aulas/Dia: Definido em 2 para disciplinas com mais de 2 aulas semanais e 1 para as demais, por padrão pedagógico.
-
-let professores = [
-    { nome: "Prof. de Arte", disciplina: "arte", nivelEnsino: "Ambos", disponibilidade: ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"] },
-    { nome: "Prof. de Biologia 1", disciplina: "biologia 1", nivelEnsino: "Medio", disponibilidade: ["Terça", "Quarta", "Quinta", "Sexta"] },
-    { nome: "Prof. de Biologia 2", disciplina: "biologia 2", nivelEnsino: "Medio", disponibilidade: ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"] },
-    { nome: "Prof. de Biologia", disciplina: "biologia", nivelEnsino: "Ambos", disponibilidade: ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"] },
-    { nome: "Prof. de Ciências", disciplina: "ciencias", nivelEnsino: "Fundamental", disponibilidade: ["Terça", "Quarta", "Quinta", "Sexta"] },
-    { nome: "Prof. de Ed. Física", disciplina: "educacao fisica", nivelEnsino: "Ambos", disponibilidade: ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"] },
-    { nome: "Prof. de Ensino Religioso", disciplina: "ensino religioso", nivelEnsino: "Fundamental", disponibilidade: ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"] },
-    { nome: "Prof. de Filosofia", disciplina: "filosofia", nivelEnsino: "Medio", disponibilidade: ["Terça", "Quarta", "Quinta", "Sexta"] },
-    { nome: "Prof. de Física 1", disciplina: "fisica 1", nivelEnsino: "Medio", disponibilidade: ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"] },
-    { nome: "Prof. de Física 2", disciplina: "fisica 2", nivelEnsino: "Medio", disponibilidade: ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"] },
-    { nome: "Prof. de Geografia", disciplina: "geografia", nivelEnsino: "Ambos", disponibilidade: ["Terça", "Quarta", "Quinta", "Sexta"] },
-    { nome: "Prof. de História", disciplina: "historia", nivelEnsino: "Ambos", disponibilidade: ["Segunda", "Terça", "Quarta", "Quinta"] },
-    { nome: "Prof. de Espanhol", disciplina: "espanhol", nivelEnsino: "Medio", disponibilidade: ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"] },
-    { nome: "Prof. de Inglês", disciplina: "ingles", nivelEnsino: "Ambos", disponibilidade: ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"] },
-    { nome: "Prof. de Português", disciplina: "portugues", nivelEnsino: "Ambos", disponibilidade: ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"] },
-    { nome: "Prof. de Matemática", disciplina: "matematica", nivelEnsino: "Ambos", disponibilidade: ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"] },
-    { nome: "Prof. de Matemática 1", disciplina: "matematica 1", nivelEnsino: "Medio", disponibilidade: ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"] },
-    { nome: "Prof. de Matemática 2", disciplina: "matematica 2", nivelEnsino: "Medio", disponibilidade: ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"] },
-    { nome: "Prof. de Química 1", disciplina: "quimica 1", nivelEnsino: "Medio", disponibilidade: ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"] },
-    { nome: "Prof. de Química 2", disciplina: "quimica 2", nivelEnsino: "Medio", disponibilidade: ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"] },
-    { nome: "Prof. de Sociologia", disciplina: "sociologia", nivelEnsino: "Medio", disponibilidade: ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"] }
-];
-
-let cargasHorarias = [
-    { turma: "6º ano", disciplina: "arte", aulas: 2, limiteDiario: 1 },
-    { turma: "6º ano", disciplina: "ciencias", aulas: 3, limiteDiario: 2 },
-    { turma: "6º ano", disciplina: "educacao fisica", aulas: 2, limiteDiario: 1 },
-    { turma: "6º ano", disciplina: "ensino religioso", aulas: 1, limiteDiario: 1 },
-    { turma: "6º ano", disciplina: "geografia", aulas: 2, limiteDiario: 1 },
-    { turma: "6º ano", disciplina: "historia", aulas: 2, limiteDiario: 1 },
-    { turma: "6º ano", disciplina: "ingles", aulas: 2, limiteDiario: 1 },
-    { turma: "6º ano", disciplina: "portugues", aulas: 3, limiteDiario: 2 },
-    { turma: "6º ano", disciplina: "matematica", aulas: 5, limiteDiario: 2 },
-
-    { turma: "7º ano", disciplina: "arte", aulas: 2, limiteDiario: 1 },
-    { turma: "7º ano", disciplina: "ciencias", aulas: 2, limiteDiario: 1 },
-    { turma: "7º ano", disciplina: "educacao fisica", aulas: 2, limiteDiario: 1 },
-    { turma: "7º ano", disciplina: "ensino religioso", aulas: 1, limiteDiario: 1 },
-    { turma: "7º ano", disciplina: "geografia", aulas: 2, limiteDiario: 1 },
-    { turma: "7º ano", disciplina: "historia", aulas: 2, limiteDiario: 1 },
-    { turma: "7º ano", disciplina: "ingles", aulas: 2, limiteDiario: 1 },
-    { turma: "7º ano", disciplina: "portugues", aulas: 3, limiteDiario: 2 },
-    { turma: "7º ano", disciplina: "matematica", aulas: 5, limiteDiario: 2 },
-
-    { turma: "8º ano", disciplina: "ciencias", aulas: 2, limiteDiario: 1 },
-    { turma: "8º ano", disciplina: "educacao fisica", aulas: 2, limiteDiario: 1 },
-    { turma: "8º ano", disciplina: "historia", aulas: 2, limiteDiario: 1 },
-    { turma: "8º ano", disciplina: "ingles", aulas: 2, limiteDiario: 1 },
-    { turma: "8º ano", disciplina: "portugues", aulas: 3, limiteDiario: 2 },
-    { turma: "8º ano", disciplina: "matematica", aulas: 5, limiteDiario: 2 },
-
-    { turma: "9º ano", disciplina: "ciencias", aulas: 2, limiteDiario: 1 },
-    { turma: "9º ano", disciplina: "educacao fisica", aulas: 2, limiteDiario: 1 },
-    { turma: "9º ano", disciplina: "geografia", aulas: 2, limiteDiario: 1 },
-    { turma: "9º ano", disciplina: "historia", aulas: 2, limiteDiario: 1 },
-    { turma: "9º ano", disciplina: "ingles", aulas: 2, limiteDiario: 1 },
-    { turma: "9º ano", disciplina: "portugues", aulas: 3, limiteDiario: 2 },
-    { turma: "9º ano", disciplina: "matematica", aulas: 6, limiteDiario: 2 },
-
-    { turma: "1º EM", disciplina: "biologia", aulas: 2, limiteDiario: 1 },
-    { turma: "1º EM", disciplina: "educacao fisica", aulas: 2, limiteDiario: 1 },
-    { turma: "1º EM", disciplina: "espanhol", aulas: 2, limiteDiario: 1 },
-    { turma: "1º EM", disciplina: "filosofia", aulas: 2, limiteDiario: 1 },
-    { turma: "1º EM", disciplina: "fisica 1", aulas: 2, limiteDiario: 1 },
-    { turma: "1º EM", disciplina: "geografia", aulas: 2, limiteDiario: 1 },
-    { turma: "1º EM", disciplina: "historia", aulas: 2, limiteDiario: 1 },
-    { turma: "1º EM", disciplina: "ingles", aulas: 2, limiteDiario: 1 },
-    { turma: "1º EM", disciplina: "portugues", aulas: 3, limiteDiario: 2 },
-    { turma: "1º EM", disciplina: "matematica", aulas: 5, limiteDiario: 2 },
-
-    { turma: "2º EM", disciplina: "arte", aulas: 2, limiteDiario: 1 },
-    { turma: "2º EM", disciplina: "biologia 1", aulas: 2, limiteDiario: 1 },
-    { turma: "2º EM", disciplina: "educacao fisica", aulas: 2, limiteDiario: 1 },
-    { turma: "2º EM", disciplina: "espanhol", aulas: 1, limiteDiario: 1 },
-    { turma: "2º EM", disciplina: "filosofia", aulas: 2, limiteDiario: 1 },
-    { turma: "2º EM", disciplina: "fisica 1", aulas: 2, limiteDiario: 1 },
-    { turma: "2º EM", disciplina: "geografia", aulas: 2, limiteDiario: 1 },
-    { turma: "2º EM", disciplina: "historia", aulas: 2, limiteDiario: 1 },
-    { turma: "2º EM", disciplina: "ingles", aulas: 2, limiteDiario: 1 },
-    { turma: "2º EM", disciplina: "portugues", aulas: 3, limiteDiario: 2 },
-    { turma: "2º EM", disciplina: "matematica 1", aulas: 2, limiteDiario: 1 },
-    { turma: "2º EM", disciplina: "matematica 2", aulas: 3, limiteDiario: 2 },
-    { turma: "2º EM", disciplina: "quimica 1", aulas: 2, limiteDiario: 1 },
-
-    { turma: "3º EM", disciplina: "arte", aulas: 2, limiteDiario: 1 },
-    { turma: "3º EM", disciplina: "biologia 2", aulas: 2, limiteDiario: 1 },
-    { turma: "3º EM", disciplina: "educacao fisica", aulas: 2, limiteDiario: 1 },
-    { turma: "3º EM", disciplina: "fisica 2", aulas: 3, limiteDiario: 2 },
-    { turma: "3º EM", disciplina: "historia", aulas: 2, limiteDiario: 1 },
-    { turma: "3º EM", disciplina: "ingles", aulas: 2, limiteDiario: 1 },
-    { turma: "3º EM", disciplina: "portugues", aulas: 3, limiteDiario: 2 },
-    { turma: "3º EM", disciplina: "quimica 2", aulas: 2, limiteDiario: 1 },
-    { turma: "3º EM", disciplina: "sociologia", aulas: 2, limiteDiario: 1 },
-];
+    let professores = JSON.parse(localStorage.getItem('professores')) || [];
+    let cargasHorarias = JSON.parse(localStorage.getItem('cargasHorarias')) || [];
     let gradeHoraria = {};
     let swapMode = false;
     let selectedCell = null;
@@ -206,7 +107,6 @@ let cargasHorarias = [
             };
         });
 
-        // Converte o objeto aulasRestantes para um array para poder embaralhar
         let aulasArray = Object.keys(aulasRestantes).map(key => ({ chave: key, ...aulasRestantes[key] }));
         if (shuffle) {
             shuffleArray(aulasArray);
@@ -250,7 +150,7 @@ let cargasHorarias = [
                             gradeHoraria[dia][i][turma] = `${professor.nome} (${disciplinaCarga})`;
                             aulasRestantes[chave].aulas--;
                             aulasPorDisciplinaDia[turma][dia][disciplinaCarga] = aulasHoje + 1;
-                            break; // Sai do loop de aulas e tenta preencher o próximo slot
+                            break;
                         }
                     }
                 }
@@ -300,7 +200,6 @@ let cargasHorarias = [
                 professorDisciplina: cell.textContent
             };
 
-            // Extrai nome do professor e disciplina
             const getProfessorInfo = (text) => {
                 if (!text) return { nome: '', disciplina: '' };
                 const match = text.match(/(.*)\s\((.*)\)/);
@@ -312,81 +211,49 @@ let cargasHorarias = [
 
             const prof1Obj = professores.find(p => p.nome === prof1.nome);
             const prof2Obj = professores.find(p => p.nome === prof2.nome);
+
+            // Validação das novas posições
+            const validation1 = podeAlocar(prof1Obj, cell2Data);
+            const validation2 = podeAlocar(prof2Obj, cell1Data);
             
-            // Lógica de validação da troca
-            const isValidSwap = (prof1ToMove, prof2ToMove) => {
-                // Checa se o prof1 pode ir para o lugar do prof2
-                if (prof1ToMove.nome && !podeAlocar(prof1ToMove, cell2Data)) return false;
-                // Checa se o prof2 pode ir para o lugar do prof1
-                if (prof2ToMove.nome && !podeAlocar(prof2ToMove, cell1Data)) return false;
-
-                return true;
-            };
-
-            const podeAlocar = (professorObj, slotData) => {
-                // Se não há professor para alocar, é sempre válido
-                if (!professorObj || !professorObj.nome) return true;
-                
-                // Verifica a disponibilidade
-                if (!professorObj.disponibilidade.includes(slotData.dia)) {
-                    statusMessage.textContent = `Erro: ${professorObj.nome} não está disponível na ${slotData.dia}.`;
-                    statusMessage.style.color = 'red';
-                    return false;
-                }
-                
-                // Verifica o nível de ensino
-                const nivelValido = 
-                    (professorObj.nivelEnsino === 'Fundamental' && turmasFundamental.includes(slotData.turma)) ||
-                    (professorObj.nivelEnsino === 'Medio' && turmasMedio.includes(slotData.turma)) ||
-                    (professorObj.nivelEnsino === 'Ambos');
-                if (!nivelValido) {
-                    statusMessage.textContent = `Erro: ${professorObj.nome} não pode lecionar na turma ${slotData.turma}.`;
-                    statusMessage.style.color = 'red';
-                    return false;
-                }
-
-                // Verifica conflito de horário
-                const conflito = todasTurmas.some(turma => {
-                    if (turma !== slotData.turma && gradeHoraria[slotData.dia]?.[slotData.aula]?.[turma]?.includes(professorObj.nome)) {
-                        statusMessage.textContent = `Erro: ${professorObj.nome} já tem aula na ${turma} na ${slotData.dia}, ${slotData.aula}ª aula.`;
-                        statusMessage.style.color = 'red';
-                        return true;
-                    }
-                    return false;
-                });
-                if (conflito) return false;
-
-                // Verifica aulas consecutivas
-                const aulaAnterior = gradeHoraria[slotData.dia]?.[parseInt(slotData.aula) - 1]?.[slotData.turma];
-                const aulaPosterior = gradeHoraria[slotData.dia]?.[parseInt(slotData.aula) + 1]?.[slotData.turma];
-                if ((aulaAnterior && aulaAnterior.includes(professorObj.nome)) || (aulaPosterior && aulaPosterior.includes(professorObj.nome))) {
-                    statusMessage.textContent = `Erro: ${professorObj.nome} teria aulas consecutivas na ${slotData.turma}.`;
-                    statusMessage.style.color = 'red';
-                    return false;
-                }
-                
-                return true;
-            };
-
-            // Tenta a troca
-            if (isValidSwap(prof1Obj, prof2Obj)) {
-                // Atualiza o objeto gradeHoraria
+            if (validation1.isValid && validation2.isValid) {
+                // Se a troca for válida, atualiza o objeto e a interface
                 gradeHoraria[cell1Data.dia][cell1Data.aula][cell1Data.turma] = cell2Data.professorDisciplina;
                 gradeHoraria[cell2Data.dia][cell2Data.aula][cell2Data.turma] = cell1Data.professorDisciplina;
                 
-                // Atualiza a interface
                 selectedCell.textContent = cell2Data.professorDisciplina;
                 cell.textContent = cell1Data.professorDisciplina;
                 
-                statusMessage.textContent = 'Troca realizada com sucesso!';
-                statusMessage.style.color = 'green';
+                displayFloatingMessage('Troca realizada com sucesso!', 'success', cell);
+
+            } else {
+                // Exibe a mensagem de erro específica
+                const errorMessage = !validation1.isValid ? validation1.message : validation2.message;
+                displayFloatingMessage(errorMessage, 'error', cell);
             }
 
-            // Limpa a seleção
             selectedCell.classList.remove('grade-cell-selected');
             selectedCell = null;
         }
     }
+    
+    // Função para exibir a mensagem flutuante
+    function displayFloatingMessage(message, type, targetElement) {
+        const floatingMessage = document.createElement('div');
+        floatingMessage.textContent = message;
+        floatingMessage.classList.add('floating-message', `floating-message-${type}`);
+        
+        const rect = targetElement.getBoundingClientRect();
+        floatingMessage.style.left = `${rect.left + window.scrollX + rect.width / 2}px`;
+        floatingMessage.style.top = `${rect.top + window.scrollY}px`;
+        
+        document.body.appendChild(floatingMessage);
+        
+        setTimeout(() => {
+            floatingMessage.remove();
+        }, 3000);
+    }
+    
 
     // ----- Funções de Verificação de Restrições -----
     function estaEmOutraTurma(dia, aula, professorNome) {
@@ -404,6 +271,44 @@ let cargasHorarias = [
             return gradeHoraria[dia]?.[aula - 1]?.[turma]?.includes(professorNome);
         }
         return false;
+    }
+
+    // Função de validação mais robusta
+    function podeAlocar(professorObj, slotData) {
+        let message = '';
+        const { nome, disciplina, nivelEnsino, disponibilidade } = professorObj || {};
+        const { dia, aula, turma } = slotData;
+
+        if (!nome) return { isValid: true };
+        
+        if (!disponibilidade.includes(dia)) {
+            return { isValid: false, message: `Erro: ${nome} não está disponível na ${dia}.` };
+        }
+        
+        const nivelValido = 
+            (nivelEnsino === 'Fundamental' && turmasFundamental.includes(turma)) ||
+            (nivelEnsino === 'Medio' && turmasMedio.includes(turma)) ||
+            (nivelEnsino === 'Ambos');
+        if (!nivelValido) {
+            return { isValid: false, message: `Erro: ${nome} não pode lecionar na turma ${turma}.` };
+        }
+
+        const conflito = todasTurmas.some(turmaConflito => {
+            if (turmaConflito !== turma && gradeHoraria[dia]?.[aula]?.[turmaConflito]?.includes(nome)) {
+                message = `Erro: ${nome} já tem aula na ${turmaConflito} na ${dia}, ${aula}ª aula.`;
+                return true;
+            }
+            return false;
+        });
+        if (conflito) return { isValid: false, message: message };
+
+        const aulaAnterior = gradeHoraria[dia]?.[parseInt(aula) - 1]?.[turma];
+        const aulaPosterior = gradeHoraria[dia]?.[parseInt(aula) + 1]?.[turma];
+        if ((aulaAnterior && aulaAnterior.includes(nome)) || (aulaPosterior && aulaPosterior.includes(nome))) {
+            return { isValid: false, message: `Erro: ${nome} teria aulas consecutivas na ${turma}.` };
+        }
+        
+        return { isValid: true };
     }
 
     // ----- Event Listeners -----
@@ -466,7 +371,6 @@ let cargasHorarias = [
         }
     });
 
-    // Novos event listeners para os botões de ação
     gerarGradeBtn.addEventListener('click', () => distribuirAulas(false));
     novaGradeBtn.addEventListener('click', () => distribuirAulas(true));
     trocarBtn.addEventListener('click', () => {
