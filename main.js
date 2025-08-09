@@ -2,7 +2,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const professoresTable = document.querySelector("#professoresTable tbody");
     const gradeTable = document.querySelector("#gradeTable tbody");
 
-    // Exemplo de dados iniciais (você pode carregar de um banco ou JSON)
     const professores = [
         {
             nome: "Português",
@@ -50,29 +49,40 @@ document.addEventListener("DOMContentLoaded", () => {
         });
     });
 
-    // Função de distribuição (bem simplificada)
+    // Função de distribuição inteligente
     document.querySelector("#distribuirBtn").addEventListener("click", () => {
         const rows = gradeTable.querySelectorAll("tr");
+
+        // Reinicia cargas para evitar múltiplas distribuições erradas
+        const cargasRestantes = professores.map(p => [...p.carga]);
 
         rows.forEach((row, rowIndex) => {
             const diaIndex = Math.floor(rowIndex / aulas.length);
             const aulaIndex = rowIndex % aulas.length;
 
+            // Armazena professores já ocupados nesse horário
+            let ocupados = new Set();
+
             turmas.forEach((_, turmaIndex) => {
-                let professorDisponivel = professores.find(p => 
-                    p.carga[turmaIndex] > 0 && 
-                    p.disponibilidade[diaIndex * aulas.length + aulaIndex] !== "X"
-                );
+                let professorDisponivel = professores.find((p, idx) => {
+                    return (
+                        cargasRestantes[idx][turmaIndex] > 0 &&
+                        p.disponibilidade[diaIndex * aulas.length + aulaIndex] !== "X" &&
+                        !ocupados.has(idx) // professor não está dando aula em outra turma nesse horário
+                    );
+                });
 
                 if (professorDisponivel) {
+                    let pIndex = professores.indexOf(professorDisponivel);
                     row.cells[2 + turmaIndex].textContent = professorDisponivel.nome;
-                    professorDisponivel.carga[turmaIndex]--;
+                    cargasRestantes[pIndex][turmaIndex]--;
+                    ocupados.add(pIndex);
                 } else {
-                    row.cells[2 + turmaIndex].textContent = "0";
+                    row.cells[2 + turmaIndex].textContent = "Vago";
                 }
             });
         });
 
-        alert("Distribuição concluída!");
+        alert("Distribuição concluída com lógica otimizada!");
     });
 });
