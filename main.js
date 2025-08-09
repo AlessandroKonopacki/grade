@@ -79,7 +79,7 @@ let cargasHorarias = [
     { turma: "9º ano", disciplina: "historia", aulas: 2, limiteDiario: 1 },
     { turma: "9º ano", disciplina: "ingles", aulas: 2, limiteDiario: 1 },
     { turma: "9º ano", disciplina: "portugues", aulas: 3, limiteDiario: 2 },
-    { turma: "9º ano", disciplina: "matematica", aulas: 5, limiteDiario: 2 },
+    { turma: "9º ano", disciplina: "matematica", aulas: 6, limiteDiario: 2 },
 
     { turma: "1º EM", disciplina: "biologia", aulas: 2, limiteDiario: 1 },
     { turma: "1º EM", disciplina: "educacao fisica", aulas: 2, limiteDiario: 1 },
