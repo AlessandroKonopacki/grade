@@ -1,0 +1,48 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 20px;
+}
+
+table {
+    border-collapse: collapse;
+    margin-bottom: 40px;
+    width: 100%;
+    font-size: 14px;
+    text-align: center;
+}
+
+th, td {
+    border: 1px solid #999;
+    padding: 4px;
+}
+
+th {
+    font-weight: bold;
+}
+
+.header-main {
+    background-color: #c9daf8;
+}
+
+.header-sub {
+    background-color: #fce5cd;
+}
+
+.unavailable {
+    background-color: #f4cccc;
+    color: red;
+    font-weight: bold;
+}
+
+.gray {
+    background-color: #e6e6e6;
+}
+
+.empty {
+    background-color: #f9f9f9;
+}
+
+td[contenteditable="true"] {
+    background-color: #fff;
+    cursor: text;
+}
