@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", () => {
             nome: "Português",
             carga: [6, 6, 6, 6, 5, 6, 4],
             disponibilidade: [
-                "X","X","","","","","", // Segunda
+                "","","","","","","", // Segunda
                 "","","","","","","",   // Terça
                 "","","","","","","",   // Quarta
                 "","","","","","","",   // Quinta
