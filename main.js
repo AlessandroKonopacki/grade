@@ -1,6 +1,8 @@
 document.addEventListener('DOMContentLoaded', () => {
     const professorForm = document.getElementById('professorForm');
     const professoresList = document.getElementById('professoresList');
+    const cargaHorariaForm = document.getElementById('cargaHorariaForm');
+    const cargaHorariaList = document.getElementById('cargaHorariaList');
     const gerarGradeBtn = document.getElementById('gerarGradeBtn');
     const gradeTableBody = document.getElementById('gradeTable').querySelector('tbody');
     const statusMessage = document.getElementById('statusMessage');
@@ -10,9 +12,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const turmasFundamental = ['6º ano', '7º ano', '8º ano', '9º ano'];
     const turmasMedio = ['1º EM', '2º EM', '3º EM'];
     const todasTurmas = [...turmasFundamental, ...turmasMedio];
-    const aulasPorDisciplina = 4; // Ex: 4 aulas de Matemática por turma por semana
 
     let professores = JSON.parse(localStorage.getItem('professores')) || [];
+    let cargasHorarias = JSON.parse(localStorage.getItem('cargasHorarias')) || [];
     let gradeHoraria = {};
 
     // Função para renderizar a lista de professores cadastrados
@@ -24,9 +26,22 @@ document.addEventListener('DOMContentLoaded', () => {
             const li = document.createElement('li');
             li.innerHTML = `
                 <span>${prof.nome} (${prof.disciplina}) - Nível: ${nivelText} - Disponível: ${prof.disponibilidade.join(', ')}</span>
-                <button class="remove-btn" data-index="${index}">Remover</button>
+                <button class="remove-btn" data-index="${index}" data-type="professor">Remover</button>
             `;
             professoresList.appendChild(li);
+        });
+    }
+
+    // Função para renderizar a lista de cargas horárias
+    function renderizarCargasHorarias() {
+        cargaHorariaList.innerHTML = '';
+        cargasHorarias.forEach((carga, index) => {
+            const li = document.createElement('li');
+            li.innerHTML = `
+                <span>${carga.turma}: ${carga.disciplina} - ${carga.aulas} aulas/semana</span>
+                <button class="remove-btn" data-index="${index}" data-type="carga">Remover</button>
+            `;
+            cargaHorariaList.appendChild(li);
         });
     }
 
@@ -53,48 +68,36 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Função principal para o algoritmo de distribuição
     function distribuirAulas() {
-        // Reinicia a grade e as contagens
+        if (professores.length === 0 || cargasHorarias.length === 0) {
+            statusMessage.textContent = 'Por favor, cadastre professores e cargas horárias antes de gerar a grade.';
+            statusMessage.style.color = 'orange';
+            return;
+        }
+
         gradeHoraria = {};
-        todasTurmas.forEach(turma => {
-            gradeHoraria[turma] = {};
-            diasDaSemana.forEach(dia => {
-                gradeHoraria[turma][dia] = Array(aulasPorDia).fill('');
-            });
-        });
+        let aulasRestantes = {};
 
-        let disciplinasParaDistribuir = {};
-        professores.forEach(prof => {
-            let turmasDoProfessor = [];
-            if (prof.nivelEnsino === 'Fundamental' || prof.nivelEnsino === 'Ambos') {
-                turmasDoProfessor = [...turmasDoProfessor, ...turmasFundamental];
-            }
-            if (prof.nivelEnsino === 'Medio' || prof.nivelEnsino === 'Ambos') {
-                turmasDoProfessor = [...turmasDoProfessor, ...turmasMedio];
-            }
-            
-            turmasDoProfessor.forEach(turma => {
-                const chave = `${turma}-${prof.disciplina}`;
-                if (!disciplinasParaDistribuir[chave]) {
-                    disciplinasParaDistribuir[chave] = {
-                        professor: prof,
-                        aulasRestantes: aulasPorDisciplina
-                    };
-                }
-            });
+        cargasHorarias.forEach(carga => {
+            aulasRestantes[`${carga.turma}-${carga.disciplina}`] = {
+                aulas: carga.aulas,
+                professor: professores.find(p => p.disciplina === carga.disciplina)
+            };
         });
-
-        // Tentar preencher a grade aula por aula
+        
         for (const dia of diasDaSemana) {
             for (let i = 1; i <= aulasPorDia; i++) {
                 for (const turma of todasTurmas) {
                     let alocado = false;
-                    for (const chave in disciplinasParaDistribuir) {
-                        const { professor, aulasRestantes } = disciplinasParaDistribuir[chave];
-                        const [turmaDisc, disciplina] = chave.split('-');
+                    for (const chave in aulasRestantes) {
+                        const { aulas, professor } = aulasRestantes[chave];
+                        const [turmaCarga, disciplinaCarga] = chave.split('-');
+
+                        if (turmaCarga !== turma) continue;
+                        if (aulas <= 0) continue;
 
                         // Verificações das condições
                         const podeAlocar = 
-                            aulasRestantes > 0 &&
+                            professor &&
                             professor.disponibilidade.includes(dia) &&
                             (
                                 (professor.nivelEnsino === 'Fundamental' && turmasFundamental.includes(turma)) ||
@@ -104,11 +107,11 @@ document.addEventListener('DOMContentLoaded', () => {
                             !estaEmOutraTurma(dia, i, professor.nome) &&
                             !aulasConsecutivas(dia, i, turma, professor.nome);
                         
-                        if (podeAlocar && turmaDisc === turma) {
+                        if (podeAlocar) {
                             gradeHoraria[dia] = gradeHoraria[dia] || {};
                             gradeHoraria[dia][i] = gradeHoraria[dia][i] || {};
-                            gradeHoraria[dia][i][turma] = professor.nome;
-                            disciplinasParaDistribuir[chave].aulasRestantes--;
+                            gradeHoraria[dia][i][turma] = `${professor.nome} (${disciplinaCarga})`;
+                            aulasRestantes[chave].aulas--;
                             alocado = true;
                             break;
                         }
@@ -117,23 +120,23 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        const aulasFaltantes = Object.values(disciplinasParaDistribuir).some(d => d.aulasRestantes > 0);
+        const aulasFaltantes = Object.values(aulasRestantes).some(d => d.aulas > 0);
         if (aulasFaltantes) {
-            statusMessage.textContent = 'Não foi possível alocar todas as aulas com as restrições fornecidas.';
+            statusMessage.textContent = 'Não foi possível alocar todas as aulas. Verifique as disponibilidades e cargas horárias.';
             statusMessage.style.color = 'red';
-            renderizarGrade();
+            console.log('Aulas restantes:', aulasRestantes);
         } else {
             statusMessage.textContent = 'Grade horária gerada com sucesso!';
             statusMessage.style.color = 'green';
-            renderizarGrade();
         }
+        renderizarGrade();
     }
 
     // ----- Funções de Verificação de Restrições -----
     function estaEmOutraTurma(dia, aula, professorNome) {
         let emOutra = false;
         todasTurmas.forEach(turma => {
-            if (gradeHoraria[dia]?.[aula]?.[turma] === professorNome) {
+            if (gradeHoraria[dia]?.[aula]?.[turma]?.includes(professorNome)) {
                 emOutra = true;
             }
         });
@@ -142,7 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function aulasConsecutivas(dia, aula, turma, professorNome) {
         if (aula > 1) {
-            return gradeHoraria[dia]?.[aula - 1]?.[turma] === professorNome;
+            return gradeHoraria[dia]?.[aula - 1]?.[turma]?.includes(professorNome);
         }
         return false;
     }
@@ -154,7 +157,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const disciplina = document.getElementById('disciplina').value;
         const nivelEnsino = document.getElementById('nivelEnsino').value;
         const disponibilidade = [];
-        document.querySelectorAll('input[type="checkbox"]:checked').forEach(checkbox => {
+        document.querySelectorAll('#professorForm input[type="checkbox"]:checked').forEach(checkbox => {
             disponibilidade.push(checkbox.value);
         });
 
@@ -164,16 +167,40 @@ document.addEventListener('DOMContentLoaded', () => {
             renderizarProfessores();
             professorForm.reset();
         } else {
-            alert('Por favor, preencha todos os campos!');
+            alert('Por favor, preencha todos os campos do professor!');
         }
     });
 
-    professoresList.addEventListener('click', (e) => {
+    cargaHorariaForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const turma = document.getElementById('turmaCarga').value;
+        const disciplina = document.getElementById('disciplinaCarga').value;
+        const aulas = parseInt(document.getElementById('aulasCarga').value);
+
+        if (turma && disciplina && !isNaN(aulas) && aulas >= 0) {
+            cargasHorarias.push({ turma, disciplina, aulas });
+            localStorage.setItem('cargasHorarias', JSON.stringify(cargasHorarias));
+            renderizarCargasHorarias();
+            cargaHorariaForm.reset();
+        } else {
+            alert('Por favor, preencha todos os campos da carga horária!');
+        }
+    });
+
+    // Evento para remover itens de ambas as listas
+    document.addEventListener('click', (e) => {
         if (e.target.classList.contains('remove-btn')) {
             const index = e.target.dataset.index;
-            professores.splice(index, 1);
-            localStorage.setItem('professores', JSON.stringify(professores));
-            renderizarProfessores();
+            const type = e.target.dataset.type;
+            if (type === 'professor') {
+                professores.splice(index, 1);
+                localStorage.setItem('professores', JSON.stringify(professores));
+                renderizarProfessores();
+            } else if (type === 'carga') {
+                cargasHorarias.splice(index, 1);
+                localStorage.setItem('cargasHorarias', JSON.stringify(cargasHorarias));
+                renderizarCargasHorarias();
+            }
         }
     });
 
@@ -181,5 +208,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Inicialização
     renderizarProfessores();
+    renderizarCargasHorarias();
     renderizarGrade();
 });
