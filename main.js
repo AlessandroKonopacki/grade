@@ -7,7 +7,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const diasDaSemana = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta'];
     const aulasPorDia = 5;
-    const turmas = ['6º ano', '7º ano', '8º ano', '9º ano'];
+    const turmasFundamental = ['6º ano', '7º ano', '8º ano', '9º ano'];
+    const turmasMedio = ['1º EM', '2º EM', '3º EM'];
+    const todasTurmas = [...turmasFundamental, ...turmasMedio];
     const aulasPorDisciplina = 4; // Ex: 4 aulas de Matemática por turma por semana
 
     let professores = JSON.parse(localStorage.getItem('professores')) || [];
@@ -17,9 +19,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderizarProfessores() {
         professoresList.innerHTML = '';
         professores.forEach((prof, index) => {
+            const nivelText = prof.nivelEnsino === 'Fundamental' ? 'Ensino Fundamental' :
+                              prof.nivelEnsino === 'Medio' ? 'Ensino Médio' : 'Ambos';
             const li = document.createElement('li');
             li.innerHTML = `
-                <span>${prof.nome} (${prof.disciplina}) - Disponível: ${prof.disponibilidade.join(', ')}</span>
+                <span>${prof.nome} (${prof.disciplina}) - Nível: ${nivelText} - Disponível: ${prof.disponibilidade.join(', ')}</span>
                 <button class="remove-btn" data-index="${index}">Remover</button>
             `;
             professoresList.appendChild(li);
@@ -36,7 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 tdDiaAula.textContent = `${dia} - ${i}ª aula`;
                 tr.appendChild(tdDiaAula);
 
-                turmas.forEach(turma => {
+                todasTurmas.forEach(turma => {
                     const tdProfessor = document.createElement('td');
                     const professor = gradeHoraria[dia]?.[i]?.[turma] || '';
                     tdProfessor.textContent = professor;
@@ -51,7 +55,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function distribuirAulas() {
         // Reinicia a grade e as contagens
         gradeHoraria = {};
-        turmas.forEach(turma => {
+        todasTurmas.forEach(turma => {
             gradeHoraria[turma] = {};
             diasDaSemana.forEach(dia => {
                 gradeHoraria[turma][dia] = Array(aulasPorDia).fill('');
@@ -60,7 +64,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
         let disciplinasParaDistribuir = {};
         professores.forEach(prof => {
-            turmas.forEach(turma => {
+            let turmasDoProfessor = [];
+            if (prof.nivelEnsino === 'Fundamental' || prof.nivelEnsino === 'Ambos') {
+                turmasDoProfessor = [...turmasDoProfessor, ...turmasFundamental];
+            }
+            if (prof.nivelEnsino === 'Medio' || prof.nivelEnsino === 'Ambos') {
+                turmasDoProfessor = [...turmasDoProfessor, ...turmasMedio];
+            }
+            
+            turmasDoProfessor.forEach(turma => {
                 const chave = `${turma}-${prof.disciplina}`;
                 if (!disciplinasParaDistribuir[chave]) {
                     disciplinasParaDistribuir[chave] = {
@@ -74,8 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Tentar preencher a grade aula por aula
         for (const dia of diasDaSemana) {
             for (let i = 1; i <= aulasPorDia; i++) {
-                for (const turma of turmas) {
-                    // Encontrar uma disciplina para alocar
+                for (const turma of todasTurmas) {
                     let alocado = false;
                     for (const chave in disciplinasParaDistribuir) {
                         const { professor, aulasRestantes } = disciplinasParaDistribuir[chave];
@@ -85,6 +96,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         const podeAlocar = 
                             aulasRestantes > 0 &&
                             professor.disponibilidade.includes(dia) &&
+                            (
+                                (professor.nivelEnsino === 'Fundamental' && turmasFundamental.includes(turma)) ||
+                                (professor.nivelEnsino === 'Medio' && turmasMedio.includes(turma)) ||
+                                (professor.nivelEnsino === 'Ambos')
+                            ) &&
                             !estaEmOutraTurma(dia, i, professor.nome) &&
                             !aulasConsecutivas(dia, i, turma, professor.nome);
                         
@@ -101,7 +117,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Verificação final para saber se todas as aulas foram alocadas
         const aulasFaltantes = Object.values(disciplinasParaDistribuir).some(d => d.aulasRestantes > 0);
         if (aulasFaltantes) {
             statusMessage.textContent = 'Não foi possível alocar todas as aulas com as restrições fornecidas.';
@@ -117,7 +132,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // ----- Funções de Verificação de Restrições -----
     function estaEmOutraTurma(dia, aula, professorNome) {
         let emOutra = false;
-        turmas.forEach(turma => {
+        todasTurmas.forEach(turma => {
             if (gradeHoraria[dia]?.[aula]?.[turma] === professorNome) {
                 emOutra = true;
             }
@@ -137,13 +152,14 @@ document.addEventListener('DOMContentLoaded', () => {
         e.preventDefault();
         const nome = document.getElementById('nome').value;
         const disciplina = document.getElementById('disciplina').value;
+        const nivelEnsino = document.getElementById('nivelEnsino').value;
         const disponibilidade = [];
         document.querySelectorAll('input[type="checkbox"]:checked').forEach(checkbox => {
             disponibilidade.push(checkbox.value);
         });
 
-        if (nome && disciplina && disponibilidade.length > 0) {
-            professores.push({ nome, disciplina, disponibilidade });
+        if (nome && disciplina && nivelEnsino && disponibilidade.length > 0) {
+            professores.push({ nome, disciplina, nivelEnsino, disponibilidade });
             localStorage.setItem('professores', JSON.stringify(professores));
             renderizarProfessores();
             professorForm.reset();
