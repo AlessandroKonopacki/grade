@@ -38,7 +38,7 @@ document.addEventListener('DOMContentLoaded', () => {
         cargasHorarias.forEach((carga, index) => {
             const li = document.createElement('li');
             li.innerHTML = `
-                <span>${carga.turma}: ${carga.disciplina} - ${carga.aulas} aulas/semana</span>
+                <span>${carga.turma}: ${carga.disciplina} - ${carga.aulas} aulas/sem (Max ${carga.limiteDiario}/dia)</span>
                 <button class="remove-btn" data-index="${index}" data-type="carga">Remover</button>
             `;
             cargaHorariaList.appendChild(li);
@@ -73,27 +73,47 @@ document.addEventListener('DOMContentLoaded', () => {
             statusMessage.style.color = 'orange';
             return;
         }
-
+        
         gradeHoraria = {};
         let aulasRestantes = {};
+        let aulasPorDisciplinaDia = {};
 
         cargasHorarias.forEach(carga => {
+            const professor = professores.find(p => p.disciplina.toLowerCase() === carga.disciplina.toLowerCase());
+            if (!professor) {
+                statusMessage.textContent = `Erro: Nenhum professor encontrado para a disciplina "${carga.disciplina}".`;
+                statusMessage.style.color = 'red';
+                return;
+            }
             aulasRestantes[`${carga.turma}-${carga.disciplina}`] = {
                 aulas: carga.aulas,
-                professor: professores.find(p => p.disciplina === carga.disciplina)
+                limiteDiario: carga.limiteDiario, // Adiciona o limite diário
+                professor: professor
             };
         });
         
+        // Inicializa o rastreamento de aulas por disciplina e dia
+        todasTurmas.forEach(turma => {
+            aulasPorDisciplinaDia[turma] = {};
+            diasDaSemana.forEach(dia => {
+                aulasPorDisciplinaDia[turma][dia] = {};
+            });
+        });
+
+        // Tentar preencher a grade aula por aula
         for (const dia of diasDaSemana) {
             for (let i = 1; i <= aulasPorDia; i++) {
                 for (const turma of todasTurmas) {
                     let alocado = false;
                     for (const chave in aulasRestantes) {
-                        const { aulas, professor } = aulasRestantes[chave];
+                        const { aulas, limiteDiario, professor } = aulasRestantes[chave];
                         const [turmaCarga, disciplinaCarga] = chave.split('-');
 
                         if (turmaCarga !== turma) continue;
                         if (aulas <= 0) continue;
+
+                        const aulasHoje = aulasPorDisciplinaDia[turma][dia][disciplinaCarga] || 0;
+                        const podeTerMaisAulasHoje = aulasHoje < limiteDiario; // Usa o limite definido
 
                         // Verificações das condições
                         const podeAlocar = 
@@ -105,13 +125,15 @@ document.addEventListener('DOMContentLoaded', () => {
                                 (professor.nivelEnsino === 'Ambos')
                             ) &&
                             !estaEmOutraTurma(dia, i, professor.nome) &&
-                            !aulasConsecutivas(dia, i, turma, professor.nome);
+                            !aulasConsecutivas(dia, i, turma, professor.nome) &&
+                            podeTerMaisAulasHoje;
                         
                         if (podeAlocar) {
                             gradeHoraria[dia] = gradeHoraria[dia] || {};
                             gradeHoraria[dia][i] = gradeHoraria[dia][i] || {};
                             gradeHoraria[dia][i][turma] = `${professor.nome} (${disciplinaCarga})`;
                             aulasRestantes[chave].aulas--;
+                            aulasPorDisciplinaDia[turma][dia][disciplinaCarga] = aulasHoje + 1;
                             alocado = true;
                             break;
                         }
@@ -122,7 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const aulasFaltantes = Object.values(aulasRestantes).some(d => d.aulas > 0);
         if (aulasFaltantes) {
-            statusMessage.textContent = 'Não foi possível alocar todas as aulas. Verifique as disponibilidades e cargas horárias.';
+            statusMessage.textContent = 'Não foi possível alocar todas as aulas. Verifique as disponibilidades e cargas horárias. É possível que o limite de aulas por dia esteja muito restrito.';
             statusMessage.style.color = 'red';
             console.log('Aulas restantes:', aulasRestantes);
         } else {
@@ -162,7 +184,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if (nome && disciplina && nivelEnsino && disponibilidade.length > 0) {
-            professores.push({ nome, disciplina, nivelEnsino, disponibilidade });
+            professores.push({ nome, disciplina: disciplina.toLowerCase(), nivelEnsino, disponibilidade });
             localStorage.setItem('professores', JSON.stringify(professores));
             renderizarProfessores();
             professorForm.reset();
@@ -176,9 +198,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const turma = document.getElementById('turmaCarga').value;
         const disciplina = document.getElementById('disciplinaCarga').value;
         const aulas = parseInt(document.getElementById('aulasCarga').value);
+        const limiteDiario = parseInt(document.getElementById('limiteDiario').value);
 
-        if (turma && disciplina && !isNaN(aulas) && aulas >= 0) {
-            cargasHorarias.push({ turma, disciplina, aulas });
+        if (turma && disciplina && !isNaN(aulas) && aulas >= 0 && !isNaN(limiteDiario) && limiteDiario > 0) {
+            const index = cargasHorarias.findIndex(c => c.turma === turma && c.disciplina === disciplina);
+            if (index !== -1) {
+                cargasHorarias[index].aulas = aulas;
+                cargasHorarias[index].limiteDiario = limiteDiario;
+            } else {
+                cargasHorarias.push({ turma, disciplina: disciplina.toLowerCase(), aulas, limiteDiario });
+            }
             localStorage.setItem('cargasHorarias', JSON.stringify(cargasHorarias));
             renderizarCargasHorarias();
             cargaHorariaForm.reset();
