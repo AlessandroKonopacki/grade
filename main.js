@@ -15,8 +15,107 @@ document.addEventListener('DOMContentLoaded', () => {
     const turmasMedio = ['1º EM', '2º EM', '3º EM'];
     const todasTurmas = [...turmasFundamental, ...turmasMedio];
 
-    let professores = JSON.parse(localStorage.getItem('professores')) || [];
-    let cargasHorarias = JSON.parse(localStorage.getItem('cargasHorarias')) || [];
+  // ATENÇÃO: Substitua as suas variáveis 'professores' e 'cargasHorarias' por este código para realizar o teste.
+// Estes dados foram extraídos da imagem fornecida, com base nas restrições e regras do programa.
+// Nível de Ensino: Inferido a partir das turmas que cada professor leciona.
+// Disponibilidade: Dias com "X" na imagem foram considerados indisponíveis.
+// Limite de Aulas/Dia: Definido em 2 para disciplinas com mais de 2 aulas semanais e 1 para as demais, por padrão pedagógico.
+
+let professores = [
+    { nome: "Prof. de Arte", disciplina: "arte", nivelEnsino: "Ambos", disponibilidade: ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"] },
+    { nome: "Prof. de Biologia 1", disciplina: "biologia 1", nivelEnsino: "Medio", disponibilidade: ["Terça", "Quarta", "Quinta", "Sexta"] },
+    { nome: "Prof. de Biologia 2", disciplina: "biologia 2", nivelEnsino: "Medio", disponibilidade: ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"] },
+    { nome: "Prof. de Biologia", disciplina: "biologia", nivelEnsino: "Ambos", disponibilidade: ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"] },
+    { nome: "Prof. de Ciências", disciplina: "ciencias", nivelEnsino: "Fundamental", disponibilidade: ["Terça", "Quarta", "Quinta", "Sexta"] },
+    { nome: "Prof. de Ed. Física", disciplina: "educacao fisica", nivelEnsino: "Ambos", disponibilidade: ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"] },
+    { nome: "Prof. de Ensino Religioso", disciplina: "ensino religioso", nivelEnsino: "Fundamental", disponibilidade: ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"] },
+    { nome: "Prof. de Filosofia", disciplina: "filosofia", nivelEnsino: "Medio", disponibilidade: ["Terça", "Quarta", "Quinta", "Sexta"] },
+    { nome: "Prof. de Física 1", disciplina: "fisica 1", nivelEnsino: "Medio", disponibilidade: ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"] },
+    { nome: "Prof. de Física 2", disciplina: "fisica 2", nivelEnsino: "Medio", disponibilidade: ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"] },
+    { nome: "Prof. de Geografia", disciplina: "geografia", nivelEnsino: "Ambos", disponibilidade: ["Terça", "Quarta", "Quinta", "Sexta"] },
+    { nome: "Prof. de História", disciplina: "historia", nivelEnsino: "Ambos", disponibilidade: ["Segunda", "Terça", "Quarta", "Quinta"] },
+    { nome: "Prof. de Espanhol", disciplina: "espanhol", nivelEnsino: "Medio", disponibilidade: ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"] },
+    { nome: "Prof. de Inglês", disciplina: "ingles", nivelEnsino: "Ambos", disponibilidade: ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"] },
+    { nome: "Prof. de Português", disciplina: "portugues", nivelEnsino: "Ambos", disponibilidade: ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"] },
+    { nome: "Prof. de Matemática", disciplina: "matematica", nivelEnsino: "Ambos", disponibilidade: ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"] },
+    { nome: "Prof. de Matemática 1", disciplina: "matematica 1", nivelEnsino: "Medio", disponibilidade: ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"] },
+    { nome: "Prof. de Matemática 2", disciplina: "matematica 2", nivelEnsino: "Medio", disponibilidade: ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"] },
+    { nome: "Prof. de Química 1", disciplina: "quimica 1", nivelEnsino: "Medio", disponibilidade: ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"] },
+    { nome: "Prof. de Química 2", disciplina: "quimica 2", nivelEnsino: "Medio", disponibilidade: ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"] },
+    { nome: "Prof. de Sociologia", disciplina: "sociologia", nivelEnsino: "Medio", disponibilidade: ["Segunda", "Terça", "Quarta", "Quinta", "Sexta"] }
+];
+
+let cargasHorarias = [
+    { turma: "6º ano", disciplina: "arte", aulas: 2, limiteDiario: 1 },
+    { turma: "6º ano", disciplina: "ciencias", aulas: 3, limiteDiario: 2 },
+    { turma: "6º ano", disciplina: "educacao fisica", aulas: 2, limiteDiario: 1 },
+    { turma: "6º ano", disciplina: "ensino religioso", aulas: 1, limiteDiario: 1 },
+    { turma: "6º ano", disciplina: "geografia", aulas: 2, limiteDiario: 1 },
+    { turma: "6º ano", disciplina: "historia", aulas: 2, limiteDiario: 1 },
+    { turma: "6º ano", disciplina: "ingles", aulas: 2, limiteDiario: 1 },
+    { turma: "6º ano", disciplina: "portugues", aulas: 3, limiteDiario: 2 },
+    { turma: "6º ano", disciplina: "matematica", aulas: 5, limiteDiario: 2 },
+
+    { turma: "7º ano", disciplina: "arte", aulas: 2, limiteDiario: 1 },
+    { turma: "7º ano", disciplina: "ciencias", aulas: 2, limiteDiario: 1 },
+    { turma: "7º ano", disciplina: "educacao fisica", aulas: 2, limiteDiario: 1 },
+    { turma: "7º ano", disciplina: "ensino religioso", aulas: 1, limiteDiario: 1 },
+    { turma: "7º ano", disciplina: "geografia", aulas: 2, limiteDiario: 1 },
+    { turma: "7º ano", disciplina: "historia", aulas: 2, limiteDiario: 1 },
+    { turma: "7º ano", disciplina: "ingles", aulas: 2, limiteDiario: 1 },
+    { turma: "7º ano", disciplina: "portugues", aulas: 3, limiteDiario: 2 },
+    { turma: "7º ano", disciplina: "matematica", aulas: 5, limiteDiario: 2 },
+
+    { turma: "8º ano", disciplina: "ciencias", aulas: 2, limiteDiario: 1 },
+    { turma: "8º ano", disciplina: "educacao fisica", aulas: 2, limiteDiario: 1 },
+    { turma: "8º ano", disciplina: "historia", aulas: 2, limiteDiario: 1 },
+    { turma: "8º ano", disciplina: "ingles", aulas: 2, limiteDiario: 1 },
+    { turma: "8º ano", disciplina: "portugues", aulas: 3, limiteDiario: 2 },
+    { turma: "8º ano", disciplina: "matematica", aulas: 5, limiteDiario: 2 },
+
+    { turma: "9º ano", disciplina: "ciencias", aulas: 2, limiteDiario: 1 },
+    { turma: "9º ano", disciplina: "educacao fisica", aulas: 2, limiteDiario: 1 },
+    { turma: "9º ano", disciplina: "geografia", aulas: 2, limiteDiario: 1 },
+    { turma: "9º ano", disciplina: "historia", aulas: 2, limiteDiario: 1 },
+    { turma: "9º ano", disciplina: "ingles", aulas: 2, limiteDiario: 1 },
+    { turma: "9º ano", disciplina: "portugues", aulas: 3, limiteDiario: 2 },
+    { turma: "9º ano", disciplina: "matematica", aulas: 5, limiteDiario: 2 },
+
+    { turma: "1º EM", disciplina: "biologia", aulas: 2, limiteDiario: 1 },
+    { turma: "1º EM", disciplina: "educacao fisica", aulas: 2, limiteDiario: 1 },
+    { turma: "1º EM", disciplina: "espanhol", aulas: 2, limiteDiario: 1 },
+    { turma: "1º EM", disciplina: "filosofia", aulas: 2, limiteDiario: 1 },
+    { turma: "1º EM", disciplina: "fisica 1", aulas: 2, limiteDiario: 1 },
+    { turma: "1º EM", disciplina: "geografia", aulas: 2, limiteDiario: 1 },
+    { turma: "1º EM", disciplina: "historia", aulas: 2, limiteDiario: 1 },
+    { turma: "1º EM", disciplina: "ingles", aulas: 2, limiteDiario: 1 },
+    { turma: "1º EM", disciplina: "portugues", aulas: 3, limiteDiario: 2 },
+    { turma: "1º EM", disciplina: "matematica", aulas: 5, limiteDiario: 2 },
+
+    { turma: "2º EM", disciplina: "arte", aulas: 2, limiteDiario: 1 },
+    { turma: "2º EM", disciplina: "biologia 1", aulas: 2, limiteDiario: 1 },
+    { turma: "2º EM", disciplina: "educacao fisica", aulas: 2, limiteDiario: 1 },
+    { turma: "2º EM", disciplina: "espanhol", aulas: 1, limiteDiario: 1 },
+    { turma: "2º EM", disciplina: "filosofia", aulas: 2, limiteDiario: 1 },
+    { turma: "2º EM", disciplina: "fisica 1", aulas: 2, limiteDiario: 1 },
+    { turma: "2º EM", disciplina: "geografia", aulas: 2, limiteDiario: 1 },
+    { turma: "2º EM", disciplina: "historia", aulas: 2, limiteDiario: 1 },
+    { turma: "2º EM", disciplina: "ingles", aulas: 2, limiteDiario: 1 },
+    { turma: "2º EM", disciplina: "portugues", aulas: 3, limiteDiario: 2 },
+    { turma: "2º EM", disciplina: "matematica 1", aulas: 2, limiteDiario: 1 },
+    { turma: "2º EM", disciplina: "matematica 2", aulas: 3, limiteDiario: 2 },
+    { turma: "2º EM", disciplina: "quimica 1", aulas: 2, limiteDiario: 1 },
+
+    { turma: "3º EM", disciplina: "arte", aulas: 2, limiteDiario: 1 },
+    { turma: "3º EM", disciplina: "biologia 2", aulas: 2, limiteDiario: 1 },
+    { turma: "3º EM", disciplina: "educacao fisica", aulas: 2, limiteDiario: 1 },
+    { turma: "3º EM", disciplina: "fisica 2", aulas: 3, limiteDiario: 2 },
+    { turma: "3º EM", disciplina: "historia", aulas: 2, limiteDiario: 1 },
+    { turma: "3º EM", disciplina: "ingles", aulas: 2, limiteDiario: 1 },
+    { turma: "3º EM", disciplina: "portugues", aulas: 3, limiteDiario: 2 },
+    { turma: "3º EM", disciplina: "quimica 2", aulas: 2, limiteDiario: 1 },
+    { turma: "3º EM", disciplina: "sociologia", aulas: 2, limiteDiario: 1 },
+];
     let gradeHoraria = {};
     let swapMode = false;
     let selectedCell = null;
