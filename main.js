@@ -1,88 +1,169 @@
-document.addEventListener("DOMContentLoaded", () => {
-    const professoresTable = document.querySelector("#professoresTable tbody");
-    const gradeTable = document.querySelector("#gradeTable tbody");
+document.addEventListener('DOMContentLoaded', () => {
+    const professorForm = document.getElementById('professorForm');
+    const professoresList = document.getElementById('professoresList');
+    const gerarGradeBtn = document.getElementById('gerarGradeBtn');
+    const gradeTableBody = document.getElementById('gradeTable').querySelector('tbody');
+    const statusMessage = document.getElementById('statusMessage');
 
-    const professores = [
-        {
-            nome: "Português",
-            carga: [6, 6, 6, 6, 5, 6, 4],
-            disponibilidade: [
-                "X","X","","","","","", // Segunda
-                "","","","","","","",   // Terça
-                "","","","","","","",   // Quarta
-                "","","","","","","",   // Quinta
-                "","","","","","",""    // Sexta
-            ]
-        },
-        {
-            nome: "Matemática",
-            carga: [6, 4, 6, 4, 6, 4, 6],
-            disponibilidade: Array(30).fill("")
-        }
-    ];
+    const diasDaSemana = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta'];
+    const aulasPorDia = 5;
+    const turmas = ['6º ano', '7º ano', '8º ano', '9º ano'];
+    const aulasPorDisciplina = 4; // Ex: 4 aulas de Matemática por turma por semana
 
-    const dias = ["Segunda-feira", "Terça-feira", "Quarta-feira", "Quinta-feira", "Sexta-feira"];
-    const aulas = ["1ª aula", "2ª aula", "3ª aula", "4ª aula", "5ª aula", "6ª aula"];
-    const turmas = ["6º ano", "7º ano", "8º ano", "9º ano", "1º EM", "2º EM", "3º EM"];
+    let professores = JSON.parse(localStorage.getItem('professores')) || [];
+    let gradeHoraria = {};
 
-    // Monta tabela de professores
-    professores.forEach(prof => {
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-            <td>${prof.nome}</td>
-            ${prof.carga.map(c => `<td>${c}</td>`).join("")}
-            ${prof.disponibilidade.map(d => `<td>${d}</td>`).join("")}
-        `;
-        professoresTable.appendChild(tr);
-    });
-
-    // Monta grade de horários
-    dias.forEach(dia => {
-        aulas.forEach(aula => {
-            const tr = document.createElement("tr");
-            tr.innerHTML = `
-                <td>${dia}</td>
-                <td>${aula}</td>
-                ${turmas.map(() => `<td></td>`).join("")}
+    // Função para renderizar a lista de professores cadastrados
+    function renderizarProfessores() {
+        professoresList.innerHTML = '';
+        professores.forEach((prof, index) => {
+            const li = document.createElement('li');
+            li.innerHTML = `
+                <span>${prof.nome} (${prof.disciplina}) - Disponível: ${prof.disponibilidade.join(', ')}</span>
+                <button class="remove-btn" data-index="${index}">Remover</button>
             `;
-            gradeTable.appendChild(tr);
+            professoresList.appendChild(li);
         });
-    });
+    }
 
-    // Função de distribuição inteligente
-    document.querySelector("#distribuirBtn").addEventListener("click", () => {
-        const rows = gradeTable.querySelectorAll("tr");
+    // Função para renderizar a grade horária
+    function renderizarGrade() {
+        gradeTableBody.innerHTML = '';
+        diasDaSemana.forEach(dia => {
+            for (let i = 1; i <= aulasPorDia; i++) {
+                const tr = document.createElement('tr');
+                const tdDiaAula = document.createElement('td');
+                tdDiaAula.textContent = `${dia} - ${i}ª aula`;
+                tr.appendChild(tdDiaAula);
 
-        // Reinicia cargas para evitar múltiplas distribuições erradas
-        const cargasRestantes = professores.map(p => [...p.carga]);
-
-        rows.forEach((row, rowIndex) => {
-            const diaIndex = Math.floor(rowIndex / aulas.length);
-            const aulaIndex = rowIndex % aulas.length;
-
-            // Armazena professores já ocupados nesse horário
-            let ocupados = new Set();
-
-            turmas.forEach((_, turmaIndex) => {
-                let professorDisponivel = professores.find((p, idx) => {
-                    return (
-                        cargasRestantes[idx][turmaIndex] > 0 &&
-                        p.disponibilidade[diaIndex * aulas.length + aulaIndex] !== "X" &&
-                        !ocupados.has(idx) // professor não está dando aula em outra turma nesse horário
-                    );
+                turmas.forEach(turma => {
+                    const tdProfessor = document.createElement('td');
+                    const professor = gradeHoraria[dia]?.[i]?.[turma] || '';
+                    tdProfessor.textContent = professor;
+                    tr.appendChild(tdProfessor);
                 });
+                gradeTableBody.appendChild(tr);
+            }
+        });
+    }
 
-                if (professorDisponivel) {
-                    let pIndex = professores.indexOf(professorDisponivel);
-                    row.cells[2 + turmaIndex].textContent = professorDisponivel.nome;
-                    cargasRestantes[pIndex][turmaIndex]--;
-                    ocupados.add(pIndex);
-                } else {
-                    row.cells[2 + turmaIndex].textContent = "Vago";
+    // Função principal para o algoritmo de distribuição
+    function distribuirAulas() {
+        // Reinicia a grade e as contagens
+        gradeHoraria = {};
+        turmas.forEach(turma => {
+            gradeHoraria[turma] = {};
+            diasDaSemana.forEach(dia => {
+                gradeHoraria[turma][dia] = Array(aulasPorDia).fill('');
+            });
+        });
+
+        let disciplinasParaDistribuir = {};
+        professores.forEach(prof => {
+            turmas.forEach(turma => {
+                const chave = `${turma}-${prof.disciplina}`;
+                if (!disciplinasParaDistribuir[chave]) {
+                    disciplinasParaDistribuir[chave] = {
+                        professor: prof,
+                        aulasRestantes: aulasPorDisciplina
+                    };
                 }
             });
         });
 
-        alert("Distribuição concluída com lógica otimizada!");
+        // Tentar preencher a grade aula por aula
+        for (const dia of diasDaSemana) {
+            for (let i = 1; i <= aulasPorDia; i++) {
+                for (const turma of turmas) {
+                    // Encontrar uma disciplina para alocar
+                    let alocado = false;
+                    for (const chave in disciplinasParaDistribuir) {
+                        const { professor, aulasRestantes } = disciplinasParaDistribuir[chave];
+                        const [turmaDisc, disciplina] = chave.split('-');
+
+                        // Verificações das condições
+                        const podeAlocar = 
+                            aulasRestantes > 0 &&
+                            professor.disponibilidade.includes(dia) &&
+                            !estaEmOutraTurma(dia, i, professor.nome) &&
+                            !aulasConsecutivas(dia, i, turma, professor.nome);
+                        
+                        if (podeAlocar && turmaDisc === turma) {
+                            gradeHoraria[dia] = gradeHoraria[dia] || {};
+                            gradeHoraria[dia][i] = gradeHoraria[dia][i] || {};
+                            gradeHoraria[dia][i][turma] = professor.nome;
+                            disciplinasParaDistribuir[chave].aulasRestantes--;
+                            alocado = true;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Verificação final para saber se todas as aulas foram alocadas
+        const aulasFaltantes = Object.values(disciplinasParaDistribuir).some(d => d.aulasRestantes > 0);
+        if (aulasFaltantes) {
+            statusMessage.textContent = 'Não foi possível alocar todas as aulas com as restrições fornecidas.';
+            statusMessage.style.color = 'red';
+            renderizarGrade();
+        } else {
+            statusMessage.textContent = 'Grade horária gerada com sucesso!';
+            statusMessage.style.color = 'green';
+            renderizarGrade();
+        }
+    }
+
+    // ----- Funções de Verificação de Restrições -----
+    function estaEmOutraTurma(dia, aula, professorNome) {
+        let emOutra = false;
+        turmas.forEach(turma => {
+            if (gradeHoraria[dia]?.[aula]?.[turma] === professorNome) {
+                emOutra = true;
+            }
+        });
+        return emOutra;
+    }
+
+    function aulasConsecutivas(dia, aula, turma, professorNome) {
+        if (aula > 1) {
+            return gradeHoraria[dia]?.[aula - 1]?.[turma] === professorNome;
+        }
+        return false;
+    }
+
+    // ----- Event Listeners -----
+    professorForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const nome = document.getElementById('nome').value;
+        const disciplina = document.getElementById('disciplina').value;
+        const disponibilidade = [];
+        document.querySelectorAll('input[type="checkbox"]:checked').forEach(checkbox => {
+            disponibilidade.push(checkbox.value);
+        });
+
+        if (nome && disciplina && disponibilidade.length > 0) {
+            professores.push({ nome, disciplina, disponibilidade });
+            localStorage.setItem('professores', JSON.stringify(professores));
+            renderizarProfessores();
+            professorForm.reset();
+        } else {
+            alert('Por favor, preencha todos os campos!');
+        }
     });
+
+    professoresList.addEventListener('click', (e) => {
+        if (e.target.classList.contains('remove-btn')) {
+            const index = e.target.dataset.index;
+            professores.splice(index, 1);
+            localStorage.setItem('professores', JSON.stringify(professores));
+            renderizarProfessores();
+        }
+    });
+
+    gerarGradeBtn.addEventListener('click', distribuirAulas);
+
+    // Inicialização
+    renderizarProfessores();
+    renderizarGrade();
 });
