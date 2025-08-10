@@ -3,6 +3,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const professoresList = document.getElementById('professoresList');
     const cargaHorariaForm = document.getElementById('cargaHorariaForm');
     const cargaHorariaList = document.getElementById('cargaHorariaList');
+    const turmaCargaSelect = document.getElementById('turmaCarga');
+    const aula6Group = document.getElementById('aula6Group');
+    const aula6AtivadaCheckbox = document.getElementById('aula6Ativada');
     const gerarGradeBtn = document.getElementById('gerarGradeBtn');
     const novaGradeBtn = document.getElementById('novaGradeBtn');
     const trocarBtn = document.getElementById('trocarBtn');
@@ -11,11 +14,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const aulasSobrantesDiv = document.getElementById('aulasSobrantes');
 
     const diasDaSemana = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta'];
-    const aulasPorDia = 5;
-    const aulasPeriodo = [1, 2, 3, 4, 5];
     const turmasFundamental = ['6º ano', '7º ano', '8º ano', '9º ano'];
     const turmasMedio = ['1º EM', '2º EM', '3º EM'];
     const todasTurmas = [...turmasFundamental, ...turmasMedio];
+    const aulasPeriodoPadrao = [2, 3, 4, 5];
 
     let professores = JSON.parse(localStorage.getItem('professores')) || [];
     let cargasHorarias = JSON.parse(localStorage.getItem('cargasHorarias')) || [];
@@ -51,42 +53,45 @@ document.addEventListener('DOMContentLoaded', () => {
         cargaHorariaList.innerHTML = '';
         cargasHorarias.forEach((carga, index) => {
             const geminadaText = carga.aulaGeminada ? '(Aulas Consecutivas Ativadas)' : '';
+            const aula6Text = carga.aula6Ativada ? ' (+6ª aula)' : '';
             const li = document.createElement('li');
             li.innerHTML = `
-                <span>${carga.turma}: ${carga.disciplina} - ${carga.aulas} aulas/sem (Max ${carga.limiteDiario}/dia) ${geminadaText}</span>
+                <span>${carga.turma}: ${carga.disciplina} - ${carga.aulas} aulas/sem (Max ${carga.limiteDiario}/dia) ${geminadaText} ${aula6Text}</span>
                 <button class="remove-btn" data-index="${index}" data-type="carga">Remover</button>
             `;
             cargaHorariaList.appendChild(li);
         });
     }
 
-    // Função para renderizar a grade horária
-function renderizarGrade() {
-    gradeTableBody.innerHTML = '';
-    aulasPeriodo.forEach(aula => {
-        const tr = document.createElement('tr');
-        const tdAula = document.createElement('td');
-        tdAula.textContent = `${aula}ª aula`;
-        tr.appendChild(tdAula);
+    // Função para renderizar a grade horária NOVO FORMATO
+    function renderizarGrade() {
+        gradeTableBody.innerHTML = '';
+        const aulasPeriodoFinal = verificarAulas6();
+        
+        aulasPeriodoFinal.forEach(aula => {
+            const tr = document.createElement('tr');
+            const tdAula = document.createElement('td');
+            tdAula.textContent = `${aula}ª aula`;
+            tr.appendChild(tdAula);
 
-        diasDaSemana.forEach(dia => {
-            todasTurmas.forEach(turma => {
-                const tdProfessor = document.createElement('td');
-                tdProfessor.dataset.dia = dia;
-                tdProfessor.dataset.aula = aula;
-                tdProfessor.dataset.turma = turma;
-                const professorDisciplina = gradeHoraria[dia]?.[aula]?.[turma] || '';
-                if (professorDisciplina) {
-                    const [nomeProfessor, disciplina] = professorDisciplina.split(' (');
-                    const disciplinaFormatada = disciplina.slice(0, 3); // Pega as 3 primeiras letras da disciplina
-                    tdProfessor.innerHTML = `${nomeProfessor}<br>${disciplinaFormatada}.`;
-                }
-                tr.appendChild(tdProfessor);
+            diasDaSemana.forEach(dia => {
+                todasTurmas.forEach(turma => {
+                    const tdProfessor = document.createElement('td');
+                    tdProfessor.dataset.dia = dia;
+                    tdProfessor.dataset.aula = aula;
+                    tdProfessor.dataset.turma = turma;
+                    const professorDisciplina = gradeHoraria[dia]?.[aula]?.[turma] || '';
+                    if (professorDisciplina) {
+                        const [nomeProfessor, disciplina] = professorDisciplina.split(' (');
+                        const disciplinaFormatada = disciplina.slice(0, 3);
+                        tdProfessor.innerHTML = `${nomeProfessor}<br>${disciplinaFormatada}.`;
+                    }
+                    tr.appendChild(tdProfessor);
+                });
             });
+            gradeTableBody.appendChild(tr);
         });
-        gradeTableBody.appendChild(tr);
-    });
-}
+    }
 
     // RENDERIZA AULAS SOBRANTES
     function renderizarAulasSobrantes(aulasRestantes) {
@@ -111,6 +116,12 @@ function renderizarGrade() {
             aulasSobrantesDiv.appendChild(mensagem);
         }
     }
+    
+    // Verifica se alguma turma tem a 6ª aula ativada
+    function verificarAulas6() {
+        const temAula6 = cargasHorarias.some(carga => carga.aula6Ativada);
+        return temAula6 ? [2, 3, 4, 5, 6] : aulasPeriodoPadrao;
+    }
 
     // DISTRIBUIDOR DE AULAS
     function distribuirAulas(shuffle = false) {
@@ -123,6 +134,7 @@ function renderizarGrade() {
         gradeHoraria = {};
         let aulasRestantes = {};
         let aulasPorDisciplinaDia = {};
+        const aulasPeriodoFinal = verificarAulas6();
 
         cargasHorarias.forEach(carga => {
             const professor = professores.find(p => p.disciplina.toLowerCase() === carga.disciplina.toLowerCase());
@@ -136,7 +148,8 @@ function renderizarGrade() {
                 limiteDiario: carga.limiteDiario,
                 professor: professor,
                 turma: carga.turma,
-                aulaGeminada: carga.aulaGeminada
+                aulaGeminada: carga.aulaGeminada,
+                aula6Ativada: carga.aula6Ativada
             };
         });
 
@@ -153,7 +166,7 @@ function renderizarGrade() {
         });
 
         for (const dia of diasDaSemana) {
-            for (const aula of aulasPeriodo) {
+            for (const aula of aulasPeriodoFinal) {
                 for (const turma of todasTurmas) {
                     for (const aulaRestante of aulasArray) {
                         const { aulas, limiteDiario, professor, chave } = aulaRestante;
@@ -161,7 +174,10 @@ function renderizarGrade() {
 
                         if (turmaCarga !== turma) continue;
                         if (aulas <= 0) continue;
-
+                        
+                        // Ignora a 6ª aula para turmas que não a possuem
+                        if (aula === 6 && !aulaRestante.aula6Ativada) continue;
+                        
                         const aulasHoje = aulasPorDisciplinaDia[turma][dia][disciplinaCarga] || 0;
                         const podeTerMaisAulasHoje = aulasHoje < limiteDiario;
 
@@ -202,7 +218,7 @@ function renderizarGrade() {
         renderizarAulasSobrantes(aulasRestantes);
     }
     
-   // FERRAMENTA DE TROCA DE PROFESSORES (CORRIGIDA)
+    // FERRAMENTA DE TROCA DE PROFESSORES (CORRIGIDA)
     function handleTableClick(e) {
         if (!swapMode) return;
 
@@ -217,7 +233,6 @@ function renderizarGrade() {
             const nome = lines[0];
             const disciplinaAbreviada = lines[1].replace('.', '').toLowerCase();
 
-            // Encontra o objeto professor completo usando o nome e a abreviação
             const professorObj = professores.find(p => p.nome === nome && p.disciplina.startsWith(disciplinaAbreviada));
 
             return {
@@ -315,8 +330,9 @@ function renderizarGrade() {
     }
 
     function temAulaConsecutiva(dia, aula, turma, professorNome) {
-        const aulaAnterior = aulasPeriodo[aulasPeriodo.indexOf(aula) - 1];
-        const aulaPosterior = aulasPeriodo[aulasPeriodo.indexOf(aula) + 1];
+        const aulasPeriodoFinal = verificarAulas6();
+        const aulaAnterior = aulasPeriodoFinal[aulasPeriodoFinal.indexOf(aula) - 1];
+        const aulaPosterior = aulasPeriodoFinal[aulasPeriodoFinal.indexOf(aula) + 1];
 
         if (aulaAnterior && gradeHoraria[dia]?.[aulaAnterior]?.[turma]?.includes(professorNome)) {
             return true;
@@ -364,6 +380,16 @@ function renderizarGrade() {
     }
 
     // ----- Event Listeners -----
+    turmaCargaSelect.addEventListener('change', (e) => {
+        const turma = e.target.value;
+        if (turmasMedio.includes(turma)) {
+            aula6Group.style.display = 'flex';
+        } else {
+            aula6Group.style.display = 'none';
+            aula6AtivadaCheckbox.checked = false;
+        }
+    });
+    
     professorForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const nome = document.getElementById('nome').value;
@@ -391,6 +417,7 @@ function renderizarGrade() {
         const aulas = parseInt(document.getElementById('aulasCarga').value);
         const limiteDiario = parseInt(document.getElementById('limiteDiario').value);
         const aulaGeminada = document.getElementById('aulaGeminada').checked;
+        const aula6Ativada = document.getElementById('aula6Ativada').checked;
 
         if (turma && disciplina && !isNaN(aulas) && aulas >= 0 && !isNaN(limiteDiario) && limiteDiario > 0) {
             const index = cargasHorarias.findIndex(c => c.turma === turma && c.disciplina === disciplina);
@@ -398,8 +425,9 @@ function renderizarGrade() {
                 cargasHorarias[index].aulas = aulas;
                 cargasHorarias[index].limiteDiario = limiteDiario;
                 cargasHorarias[index].aulaGeminada = aulaGeminada;
+                cargasHorarias[index].aula6Ativada = aula6Ativada;
             } else {
-                cargasHorarias.push({ turma, disciplina: disciplina.toLowerCase(), aulas, limiteDiario, aulaGeminada });
+                cargasHorarias.push({ turma, disciplina: disciplina.toLowerCase(), aulas, limiteDiario, aulaGeminada, aula6Ativada });
             }
             localStorage.setItem('cargasHorarias', JSON.stringify(cargasHorarias));
             renderizarCargasHorarias();
