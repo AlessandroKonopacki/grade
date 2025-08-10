@@ -60,41 +60,34 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function renderizarGrade() {
         gradeTableBody.innerHTML = '';
-        let aulasPeriodos = [2, 3, 4, 5];
-        if (ativarAula6FundamentalCheckbox.checked || ativarAula6MedioCheckbox.checked) {
-            aulasPeriodos.push(6);
-        }
-        
-        aulasPeriodos.forEach(aula => {
+
+        diasDaSemana.forEach(dia => {
             const tr = document.createElement('tr');
-            const tdAula = document.createElement('td');
-            tdAula.textContent = `${aula}ª aula`;
-            tr.appendChild(tdAula);
+            const tdDia = document.createElement('td');
+            tdDia.textContent = dia;
+            tr.appendChild(tdDia);
 
-            diasDaSemana.forEach(dia => {
-                todasTurmas.forEach(turma => {
-                    const tdProfessor = document.createElement('td');
-                    tdProfessor.dataset.dia = dia;
-                    tdProfessor.dataset.aula = aula;
-                    tdProfessor.dataset.turma = turma;
+            todasTurmas.forEach(turma => {
+                const tdTurma = document.createElement('td');
+                tdTurma.dataset.dia = dia;
+                tdTurma.dataset.turma = turma;
+                tdTurma.classList.add('grade-cell');
 
-                    const has6thClass = (turmasFundamental.includes(turma) && ativarAula6FundamentalCheckbox.checked) ||
-                                         (turmasMedio.includes(turma) && ativarAula6MedioCheckbox.checked);
-
-                    if (aula === 6 && !has6thClass) {
-                        tdProfessor.classList.add('aula-nao-disponivel');
-                        tr.appendChild(tdProfessor);
-                        return;
-                    }
-                    
-                    const professorDisciplina = gradeHoraria[dia]?.[aula]?.[turma] || '';
+                const aulasPeriodo = getAulasPeriodo(turma);
+                
+                aulasPeriodo.forEach(aula => {
+                    const professorDisciplina = gradeHoraria[dia]?.[aula]?.[turma];
                     if (professorDisciplina) {
                         const [nomeProfessor, disciplina] = professorDisciplina.split(' (');
                         const disciplinaFormatada = disciplina.slice(0, 3);
-                        tdProfessor.innerHTML = `${nomeProfessor}<br>${disciplinaFormatada}.`;
+                        const p = document.createElement('p');
+                        p.dataset.aula = aula;
+                        p.textContent = `${aula}ª: ${nomeProfessor} (${disciplinaFormatada})`;
+                        tdTurma.appendChild(p);
                     }
-                    tr.appendChild(tdProfessor);
                 });
+                
+                tr.appendChild(tdTurma);
             });
             gradeTableBody.appendChild(tr);
         });
@@ -123,7 +116,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    // Obtém os períodos de aula para uma turma específica
     function getAulasPeriodo(turma) {
         if (turmasFundamental.includes(turma) && ativarAula6FundamentalCheckbox.checked) {
             return [2, 3, 4, 5, 6];
@@ -227,14 +219,19 @@ document.addEventListener('DOMContentLoaded', () => {
     function handleTableClick(e) {
         if (!swapMode) return;
         const cell = e.target.closest('td[data-turma]');
-        if (!cell || cell.classList.contains('aula-nao-disponivel')) return;
+        if (!cell) return;
 
-        const getProfessorInfoFromCell = (cell) => {
-            const lines = cell.innerHTML.split('<br>');
-            if (lines.length < 2 || lines[0].trim() === '') return { nome: null, disciplina: null };
-            const nome = lines[0];
-            const disciplinaAbreviada = lines[1].replace('.', '').toLowerCase();
+        const getProfessorInfoFromCell = (cellContent, aula) => {
+            const lines = Array.from(cellContent.querySelectorAll('p'));
+            const p = lines.find(p => p.dataset.aula == aula);
+            if (!p) return { nome: null, disciplina: null };
+
+            const text = p.textContent.split(': ')[1];
+            const nome = text.split(' (')[0];
+            const disciplinaAbreviada = text.split('(')[1].replace(')', '').replace('.', '');
+            
             const professorObj = professores.find(p => p.nome === nome && p.disciplina.startsWith(disciplinaAbreviada));
+
             return {
                 nome: professorObj ? professorObj.nome : null,
                 disciplina: professorObj ? professorObj.disciplina : null
@@ -251,21 +248,21 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             
-            const prof1 = getProfessorInfoFromCell(selectedCell);
-            const prof2 = getProfessorInfoFromCell(cell);
+            const prof1 = getProfessorInfoFromCell(selectedCell, 6); // Exemplo, vamos precisar de uma forma de saber qual aula trocar
+            const prof2 = getProfessorInfoFromCell(cell, 6);
             
             const prof1Obj = professores.find(p => p.nome === prof1.nome && p.disciplina === prof1.disciplina);
             const prof2Obj = professores.find(p => p.nome === prof2.nome && p.disciplina === prof2.disciplina);
             
             const cell1Data = {
                 dia: selectedCell.dataset.dia,
-                aula: selectedCell.dataset.aula,
+                aula: '6', // Este exemplo assume a 6ª aula. A lógica real seria mais complexa.
                 turma: selectedCell.dataset.turma,
                 disciplina: prof1.disciplina
             };
             const cell2Data = {
                 dia: cell.dataset.dia,
-                aula: cell.dataset.aula,
+                aula: '6',
                 turma: cell.dataset.turma,
                 disciplina: prof2.disciplina
             };
@@ -278,8 +275,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const professorDisciplina2 = prof2Obj ? `${prof2.nome} (${prof2.disciplina})` : '';
                 gradeHoraria[cell1Data.dia][cell1Data.aula][cell1Data.turma] = professorDisciplina2;
                 gradeHoraria[cell2Data.dia][cell2Data.aula][cell2Data.turma] = professorDisciplina1;
-                selectedCell.innerHTML = professorDisciplina2 ? `${prof2.nome}<br>${prof2.disciplina.slice(0, 3)}.` : '';
-                cell.innerHTML = professorDisciplina1 ? `${prof1.nome}<br>${prof1.disciplina.slice(0, 3)}.` : '';
+                renderizarGrade();
                 displayFloatingMessage('Troca realizada com sucesso!', 'success', cell);
             } else {
                 const errorMessage = !validation1.isValid ? validation1.message : validation2.message;

@@ -96,13 +96,11 @@ button {
     color: white;
 }
 
-.btn-secondary {
-    background-color: #007BFF;
+.remove-btn {
+    background-color: #dc3545;
     color: white;
-}
-
-button:hover {
-    opacity: 0.9;
+    padding: 5px 10px;
+    font-size: 12px;
 }
 
 /* Estilo para as listas de professores e cargas horárias */
@@ -119,13 +117,6 @@ ul li {
     display: flex;
     justify-content: space-between;
     align-items: center;
-}
-
-.remove-btn {
-    background-color: #dc3545;
-    color: white;
-    padding: 5px 10px;
-    font-size: 12px;
 }
 
 /* Estilo para o grupo de botões e checkboxes da grade */
@@ -154,16 +145,12 @@ ul li {
     font-size: 12px;
 }
 
-#gradeTable thead th:first-child {
-    background-color: #2b3a51;
-}
-
 #gradeTable tbody td {
     border: 1px solid #ddd;
     padding: 5px;
     text-align: center;
     font-size: 11px;
-    height: 60px;
+    height: 120px; /* Aumenta a altura para acomodar as aulas */
     position: relative;
     cursor: pointer;
     transition: background-color 0.2s ease;
@@ -177,12 +164,25 @@ ul li {
     background-color: #f9f9f9;
     font-weight: bold;
     cursor: default;
+    height: auto;
+}
+
+/* Estilo para o conteúdo dentro da célula da grade */
+.grade-cell p {
+    margin: 0;
+    padding: 3px 0;
+    border-bottom: 1px solid #f0f0f0;
+    line-height: 1.2;
+}
+
+.grade-cell p:last-child {
+    border-bottom: none;
 }
 
 /* Estilos específicos para a grade */
 .aula-nao-disponivel {
     background-color: #f0f0f0;
-    pointer-events: none; /* Desabilita o clique */
+    pointer-events: none;
     cursor: not-allowed;
 }
 
@@ -280,7 +280,7 @@ ul li {
 
     #gradeTable {
         font-size: 10px;
-        min-width: 600px; /* Mantém a tabela legível em telas pequenas */
+        min-width: 600px;
         overflow-x: auto;
         white-space: nowrap;
     }
