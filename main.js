@@ -202,12 +202,29 @@ function renderizarGrade() {
         renderizarAulasSobrantes(aulasRestantes);
     }
     
-    // FERRAMENTA DE TROCA DE PROFESSORES
+   // FERRAMENTA DE TROCA DE PROFESSORES (CORRIGIDA)
     function handleTableClick(e) {
         if (!swapMode) return;
 
         const cell = e.target.closest('td[data-turma]');
         if (!cell) return;
+
+        // Função auxiliar para extrair professor e disciplina da célula
+        const getProfessorInfoFromCell = (cell) => {
+            const lines = cell.innerHTML.split('<br>');
+            if (lines.length < 2 || lines[0].trim() === '') return { nome: null, disciplina: null };
+
+            const nome = lines[0];
+            const disciplinaAbreviada = lines[1].replace('.', '').toLowerCase();
+
+            // Encontra o objeto professor completo usando o nome e a abreviação
+            const professorObj = professores.find(p => p.nome === nome && p.disciplina.startsWith(disciplinaAbreviada));
+
+            return {
+                nome: professorObj ? professorObj.nome : null,
+                disciplina: professorObj ? professorObj.disciplina : null
+            };
+        };
 
         if (!selectedCell) {
             selectedCell = cell;
@@ -218,51 +235,47 @@ function renderizarGrade() {
                 selectedCell = null;
                 return;
             }
-
+            
+            // Pega as informações do professor 1
+            const prof1 = getProfessorInfoFromCell(selectedCell);
+            // Pega as informações do professor 2
+            const prof2 = getProfessorInfoFromCell(cell);
+            
+            // Encontra os objetos completos de cada professor para a validação
+            const prof1Obj = professores.find(p => p.nome === prof1.nome && p.disciplina === prof1.disciplina);
+            const prof2Obj = professores.find(p => p.nome === prof2.nome && p.disciplina === prof2.disciplina);
+            
+            // Monta os dados dos slots para a validação
             const cell1Data = {
                 dia: selectedCell.dataset.dia,
                 aula: selectedCell.dataset.aula,
                 turma: selectedCell.dataset.turma,
-                professorDisciplina: selectedCell.innerHTML.replace(/<br>/g, ' ').split(' (')[0] + ' (' + selectedCell.innerHTML.replace(/<br>/g, ' ').split(' (')[1]
+                disciplina: prof1.disciplina
             };
-
             const cell2Data = {
                 dia: cell.dataset.dia,
                 aula: cell.dataset.aula,
                 turma: cell.dataset.turma,
-                professorDisciplina: cell.innerHTML.replace(/<br>/g, ' ').split(' (')[0] + ' (' + cell.innerHTML.replace(/<br>/g, ' ').split(' (')[1]
+                disciplina: prof2.disciplina
             };
 
-            const getProfessorInfo = (text) => {
-                if (!text || text.trim() === '(<br>)') return { nome: '', disciplina: '' };
-                const match = text.match(/(.*)\s\((.*)\)/);
-                return match ? { nome: match[1], disciplina: match[2].toLowerCase() } : { nome: text, disciplina: '' };
-            };
-            
-            const prof1 = getProfessorInfo(cell1Data.professorDisciplina);
-            const prof2 = getProfessorInfo(cell2Data.professorDisciplina);
-
-            const prof1Obj = professores.find(p => p.nome === prof1.nome);
-            const prof2Obj = professores.find(p => p.nome === prof2.nome);
-
+            // Valida se a troca é possível
             const validation1 = podeAlocar(prof1Obj, cell2Data);
             const validation2 = podeAlocar(prof2Obj, cell1Data);
-            
+
             if (validation1.isValid && validation2.isValid) {
-                const professorDisciplina1 = cell1Data.professorDisciplina;
-                const professorDisciplina2 = cell2Data.professorDisciplina;
-                
+                const professorDisciplina1 = prof1Obj ? `${prof1.nome} (${prof1.disciplina})` : '';
+                const professorDisciplina2 = prof2Obj ? `${prof2.nome} (${prof2.disciplina})` : '';
+
+                // Troca os professores na estrutura de dados
                 gradeHoraria[cell1Data.dia][cell1Data.aula][cell1Data.turma] = professorDisciplina2;
                 gradeHoraria[cell2Data.dia][cell2Data.aula][cell2Data.turma] = professorDisciplina1;
                 
-                const [nomeProf1, disciplina1] = professorDisciplina1.split(' (');
-                const [nomeProf2, disciplina2] = professorDisciplina2.split(' (');
+                // Atualiza a visualização da tabela
+                selectedCell.innerHTML = professorDisciplina2 ? `${prof2.nome}<br>${prof2.disciplina.slice(0, 3)}.` : '';
+                cell.innerHTML = professorDisciplina1 ? `${prof1.nome}<br>${prof1.disciplina.slice(0, 3)}.` : '';
 
-                selectedCell.innerHTML = professorDisciplina2 ? `${nomeProf2}<br>${disciplina2.slice(0, -1)}<br>${cell1Data.turma}` : '';
-                cell.innerHTML = professorDisciplina1 ? `${nomeProf1}<br>${disciplina1.slice(0, -1)}<br>${cell2Data.turma}` : '';
-                
                 displayFloatingMessage('Troca realizada com sucesso!', 'success', cell);
-
             } else {
                 const errorMessage = !validation1.isValid ? validation1.message : validation2.message;
                 displayFloatingMessage(errorMessage, 'error', cell);
