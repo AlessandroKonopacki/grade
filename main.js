@@ -50,9 +50,10 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderizarCargasHorarias() {
         cargaHorariaList.innerHTML = '';
         cargasHorarias.forEach((carga, index) => {
+            const geminadaText = carga.aulaGeminada ? '(Aulas Consecutivas Ativadas)' : '';
             const li = document.createElement('li');
             li.innerHTML = `
-                <span>${carga.turma}: ${carga.disciplina} - ${carga.aulas} aulas/sem (Max ${carga.limiteDiario}/dia)</span>
+                <span>${carga.turma}: ${carga.disciplina} - ${carga.aulas} aulas/sem (Max ${carga.limiteDiario}/dia) ${geminadaText}</span>
                 <button class="remove-btn" data-index="${index}" data-type="carga">Remover</button>
             `;
             cargaHorariaList.appendChild(li);
@@ -134,7 +135,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 aulas: carga.aulas,
                 limiteDiario: carga.limiteDiario,
                 professor: professor,
-                turma: carga.turma
+                turma: carga.turma,
+                aulaGeminada: carga.aulaGeminada
             };
         });
 
@@ -172,8 +174,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                 (professor.nivelEnsino === 'Ambos')
                             ) &&
                             !estaEmOutraTurma(dia, aula, professor.nome) &&
-                            !aulasConsecutivas(dia, aula, turma, professor.nome) &&
-                            podeTerMaisAulasHoje;
+                            podeTerMaisAulasHoje &&
+                            (aulaRestante.aulaGeminada || !temAulaConsecutiva(dia, aula, turma, professor.nome));
                         
                         if (podeAlocar) {
                             gradeHoraria[dia] = gradeHoraria[dia] || {};
@@ -299,7 +301,7 @@ document.addEventListener('DOMContentLoaded', () => {
         return emOutra;
     }
 
-    function aulasConsecutivas(dia, aula, turma, professorNome) {
+    function temAulaConsecutiva(dia, aula, turma, professorNome) {
         const aulaAnterior = aulasPeriodo[aulasPeriodo.indexOf(aula) - 1];
         const aulaPosterior = aulasPeriodo[aulasPeriodo.indexOf(aula) + 1];
 
@@ -313,7 +315,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function podeAlocar(professorObj, slotData) {
-        const { nome, nivelEnsino, disponibilidade } = professorObj || {};
+        const { nome, nivelEnsino, disponibilidade, disciplina } = professorObj || {};
         const { dia, aula, turma } = slotData;
 
         if (!nome) return { isValid: true };
@@ -337,8 +339,11 @@ document.addEventListener('DOMContentLoaded', () => {
             return false;
         });
         if (conflito) return { isValid: false, message: `Erro: ${nome} já tem aula em outra turma na ${dia}, ${aula}ª aula.` };
+        
+        const carga = cargasHorarias.find(c => c.turma === turma && c.disciplina.toLowerCase() === disciplina.toLowerCase());
+        const permiteConsecutivas = carga ? carga.aulaGeminada : false;
 
-        if (aulasConsecutivas(dia, parseInt(aula), turma, nome)) {
+        if (!permiteConsecutivas && temAulaConsecutiva(dia, parseInt(aula), turma, nome)) {
             return { isValid: false, message: `Erro: ${nome} teria aulas consecutivas na ${turma}.` };
         }
         
@@ -372,14 +377,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const disciplina = document.getElementById('disciplinaCarga').value;
         const aulas = parseInt(document.getElementById('aulasCarga').value);
         const limiteDiario = parseInt(document.getElementById('limiteDiario').value);
+        const aulaGeminada = document.getElementById('aulaGeminada').checked;
 
         if (turma && disciplina && !isNaN(aulas) && aulas >= 0 && !isNaN(limiteDiario) && limiteDiario > 0) {
             const index = cargasHorarias.findIndex(c => c.turma === turma && c.disciplina === disciplina);
             if (index !== -1) {
                 cargasHorarias[index].aulas = aulas;
                 cargasHorarias[index].limiteDiario = limiteDiario;
+                cargasHorarias[index].aulaGeminada = aulaGeminada;
             } else {
-                cargasHorarias.push({ turma, disciplina: disciplina.toLowerCase(), aulas, limiteDiario });
+                cargasHorarias.push({ turma, disciplina: disciplina.toLowerCase(), aulas, limiteDiario, aulaGeminada });
             }
             localStorage.setItem('cargasHorarias', JSON.stringify(cargasHorarias));
             renderizarCargasHorarias();

@@ -198,3 +198,9 @@ select {
     border-radius: 4px;
     background-color: #fff;
 }
+
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}

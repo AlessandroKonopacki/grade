@@ -1,14 +1,16 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Distribuição de Professores</title>
     <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
     <h1>Distribuição de Professores</h1>
-    
+
     <div class="container">
         <div class="card">
             <h2>Cadastro de Professores</h2>
@@ -90,6 +92,10 @@
                     <label for="limiteDiario">Limite de Aulas/Dia:</label>
                     <input type="number" id="limiteDiario" min="1" max="5" required>
                 </div>
+                <div class="form-group checkbox-group">
+                    <input type="checkbox" id="aulaGeminada">
+                    <label for="aulaGeminada">Pode ter aulas consecutivas?</label>
+                </div>
                 <button type="submit" class="btn">Adicionar Carga Horária</button>
             </form>
 
@@ -115,15 +121,45 @@
                         <th colspan="7">Sexta</th>
                     </tr>
                     <tr>
-                        <th>6º ano</th><th>7º ano</th><th>8º ano</th><th>9º ano</th><th>1º EM</th><th>2º EM</th><th>3º EM</th>
-                        <th>6º ano</th><th>7º ano</th><th>8º ano</th><th>9º ano</th><th>1º EM</th><th>2º EM</th><th>3º EM</th>
-                        <th>6º ano</th><th>7º ano</th><th>8º ano</th><th>9º ano</th><th>1º EM</th><th>2º EM</th><th>3º EM</th>
-                        <th>6º ano</th><th>7º ano</th><th>8º ano</th><th>9º ano</th><th>1º EM</th><th>2º EM</th><th>3º EM</th>
-                        <th>6º ano</th><th>7º ano</th><th>8º ano</th><th>9º ano</th><th>1º EM</th><th>2º EM</th><th>3º EM</th>
+                        <th>6º ano</th>
+                        <th>7º ano</th>
+                        <th>8º ano</th>
+                        <th>9º ano</th>
+                        <th>1º EM</th>
+                        <th>2º EM</th>
+                        <th>3º EM</th>
+                        <th>6º ano</th>
+                        <th>7º ano</th>
+                        <th>8º ano</th>
+                        <th>9º ano</th>
+                        <th>1º EM</th>
+                        <th>2º EM</th>
+                        <th>3º EM</th>
+                        <th>6º ano</th>
+                        <th>7º ano</th>
+                        <th>8º ano</th>
+                        <th>9º ano</th>
+                        <th>1º EM</th>
+                        <th>2º EM</th>
+                        <th>3º EM</th>
+                        <th>6º ano</th>
+                        <th>7º ano</th>
+                        <th>8º ano</th>
+                        <th>9º ano</th>
+                        <th>1º EM</th>
+                        <th>2º EM</th>
+                        <th>3º EM</th>
+                        <th>6º ano</th>
+                        <th>7º ano</th>
+                        <th>8º ano</th>
+                        <th>9º ano</th>
+                        <th>1º EM</th>
+                        <th>2º EM</th>
+                        <th>3º EM</th>
                     </tr>
                 </thead>
                 <tbody>
-                    </tbody>
+                </tbody>
             </table>
             <div id="statusMessage"></div>
             <div id="aulasSobrantes"></div>
@@ -132,4 +168,5 @@
 
     <script src="script.js"></script>
 </body>
+
 </html>
