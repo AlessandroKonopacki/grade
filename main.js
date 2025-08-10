@@ -60,33 +60,33 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Função para renderizar a grade horária NOVO FORMATO
-    function renderizarGrade() {
-        gradeTableBody.innerHTML = '';
-        aulasPeriodo.forEach(aula => {
-            const tr = document.createElement('tr');
-            const tdAula = document.createElement('td');
-            tdAula.textContent = `${aula}ª aula`;
-            tr.appendChild(tdAula);
+    // Função para renderizar a grade horária
+function renderizarGrade() {
+    gradeTableBody.innerHTML = '';
+    aulasPeriodo.forEach(aula => {
+        const tr = document.createElement('tr');
+        const tdAula = document.createElement('td');
+        tdAula.textContent = `${aula}ª aula`;
+        tr.appendChild(tdAula);
 
-            diasDaSemana.forEach(dia => {
-                todasTurmas.forEach(turma => {
-                    const tdProfessor = document.createElement('td');
-                    tdProfessor.dataset.dia = dia;
-                    tdProfessor.dataset.aula = aula;
-                    tdProfessor.dataset.turma = turma;
-                    const professorDisciplina = gradeHoraria[dia]?.[aula]?.[turma] || '';
-                    if (professorDisciplina) {
-                        const [nomeProfessor, disciplina] = professorDisciplina.split(' (');
-                        const disciplinaFormatada = disciplina.slice(0, -1);
-                        tdProfessor.innerHTML = `${nomeProfessor}<br>${disciplinaFormatada}<br>${turma}`;
-                    }
-                    tr.appendChild(tdProfessor);
-                });
+        diasDaSemana.forEach(dia => {
+            todasTurmas.forEach(turma => {
+                const tdProfessor = document.createElement('td');
+                tdProfessor.dataset.dia = dia;
+                tdProfessor.dataset.aula = aula;
+                tdProfessor.dataset.turma = turma;
+                const professorDisciplina = gradeHoraria[dia]?.[aula]?.[turma] || '';
+                if (professorDisciplina) {
+                    const [nomeProfessor, disciplina] = professorDisciplina.split(' (');
+                    const disciplinaFormatada = disciplina.slice(0, 3); // Pega as 3 primeiras letras da disciplina
+                    tdProfessor.innerHTML = `${nomeProfessor}<br>${disciplinaFormatada}.`;
+                }
+                tr.appendChild(tdProfessor);
             });
-            gradeTableBody.appendChild(tr);
         });
-    }
+        gradeTableBody.appendChild(tr);
+    });
+}
 
     // RENDERIZA AULAS SOBRANTES
     function renderizarAulasSobrantes(aulasRestantes) {
