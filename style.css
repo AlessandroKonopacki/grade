@@ -1,103 +1,121 @@
+/* Importação de fonte do Google Fonts para um visual mais moderno */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+
+/* Estilos gerais */
 body {
-    font-family: Arial, sans-serif;
-    background-color: #f4f4f4;
+    font-family: 'Roboto', sans-serif;
+    background-color: #f4f7f9;
     color: #333;
-    line-height: 1.6;
+    margin: 0;
     padding: 20px;
-    position: relative;
+    line-height: 1.6;
 }
 
-h1 {
-    text-align: center;
-    color: #004d99;
+h1, h2, h3 {
+    color: #1a2a47;
 }
 
+/* Layout principal */
 .container {
-    max-width: 1500px;
-    margin: auto;
     display: flex;
     flex-wrap: wrap;
     gap: 20px;
+    justify-content: center;
 }
 
+/* Estilo para os cartões (cards) */
 .card {
-    background: #fff;
-    padding: 20px;
+    background-color: #fff;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    flex: 1;
-    min-width: 300px;
+    padding: 20px;
+    flex: 1 1 300px;
 }
 
 .card.full-width {
     flex: 1 1 100%;
 }
 
-h2 {
-    color: #007bff;
-    margin-top: 0;
-}
-
+/* Estilo para os formulários */
 .form-group {
     margin-bottom: 15px;
 }
 
-label {
+.form-group label {
     display: block;
     margin-bottom: 5px;
-    font-weight: bold;
+    font-weight: 500;
 }
 
 input[type="text"],
 input[type="number"],
 select {
     width: 100%;
-    padding: 8px;
+    padding: 10px;
     border: 1px solid #ccc;
     border-radius: 4px;
     box-sizing: border-box;
+    font-size: 14px;
 }
 
+/* Estilo para o grupo de checkboxes */
 .disponibilidade {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
 }
 
-.btn {
-    display: block;
-    width: 100%;
-    padding: 10px;
-    color: #fff;
-    background-color: #007bff;
-    border: none;
-    border-radius: 4px;
+.disponibilidade div {
+    display: flex;
+    align-items: center;
+}
+
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.checkbox-group input[type="checkbox"] {
+    transform: scale(1.2);
+}
+
+/* Estilo para os botões */
+button {
     cursor: pointer;
-    font-size: 16px;
-    margin-top: 10px;
-    transition: background-color 0.3s;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: 500;
+    transition: background-color 0.3s ease;
+}
+
+.btn {
+    background-color: #4CAF50;
+    color: white;
 }
 
 .btn-secondary {
-    background-color: #6c757d;
+    background-color: #007BFF;
+    color: white;
 }
 
-.btn:hover {
-    background-color: #0056b3;
+button:hover {
+    opacity: 0.9;
 }
 
-#professoresList,
-#cargaHorariaList {
-    list-style-type: none;
+/* Estilo para as listas de professores e cargas horárias */
+ul {
+    list-style: none;
     padding: 0;
 }
 
-#professoresList li,
-#cargaHorariaList li {
+ul li {
     background-color: #e9ecef;
     padding: 10px;
     border-radius: 4px;
-    margin-bottom: 5px;
+    margin-bottom: 8px;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -106,101 +124,173 @@ select {
 .remove-btn {
     background-color: #dc3545;
     color: white;
-    border: none;
-    border-radius: 4px;
     padding: 5px 10px;
-    cursor: pointer;
     font-size: 12px;
 }
 
+/* Estilo para o grupo de botões e checkboxes da grade */
+.btn-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 20px;
+    align-items: center;
+}
+
+/* Estilo da Tabela de Grade Horária */
 #gradeTable {
     width: 100%;
     border-collapse: collapse;
-    table-layout: fixed;
     margin-top: 20px;
+    table-layout: fixed;
+}
+
+#gradeTable thead th {
+    background-color: #4a5c7c;
+    color: white;
+    padding: 10px 5px;
+    text-align: center;
+    border: 1px solid #33435c;
     font-size: 12px;
 }
 
-#gradeTable th,
-#gradeTable td {
-    border: 1px solid #000;
+#gradeTable thead th:first-child {
+    background-color: #2b3a51;
+}
+
+#gradeTable tbody td {
+    border: 1px solid #ddd;
     padding: 5px;
     text-align: center;
-    vertical-align: top;
+    font-size: 11px;
+    height: 60px;
+    position: relative;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
 }
 
-#gradeTable th {
-    background-color: #d1d1d1;
+#gradeTable tbody td:hover {
+    background-color: #f1f1f1;
+}
+
+#gradeTable tbody td:first-child {
+    background-color: #f9f9f9;
     font-weight: bold;
+    cursor: default;
 }
 
-#gradeTable tbody tr td {
-    height: 60px; /* Altura fixa para as células */
+/* Estilos específicos para a grade */
+.aula-nao-disponivel {
+    background-color: #f0f0f0;
+    pointer-events: none; /* Desabilita o clique */
+    cursor: not-allowed;
 }
 
+.grade-cell-selected {
+    border: 2px solid #007BFF !important;
+    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+}
+
+/* Estilo para a mensagem de status e aulas sobrantes */
 #statusMessage {
     margin-top: 20px;
     padding: 10px;
     border-radius: 4px;
     font-weight: bold;
-    text-align: center;
 }
 
-.button-group {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 20px;
+#statusMessage[style*="green"] {
+    background-color: #d4edda;
+    color: #155724;
 }
 
-.button-group .btn {
-    flex: 1;
-    width: auto;
+#statusMessage[style*="orange"] {
+    background-color: #fff3cd;
+    color: #856404;
 }
 
-.grade-cell-selected {
-    border: 2px solid #007bff;
-    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+#statusMessage[style*="red"] {
+    background-color: #f8d7da;
+    color: #721c24;
 }
 
-.floating-message {
-    position: absolute;
-    padding: 8px 12px;
-    border-radius: 5px;
-    color: #fff;
-    font-weight: bold;
-    font-size: 14px;
-    z-index: 1000;
-    white-space: nowrap;
-    animation: fadeout 3s forwards;
-    pointer-events: none;
-    transform: translate(-50%, -100%);
-    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
-}
-
-.floating-message-success {
-    background-color: #28a745;
-}
-
-.floating-message-error {
-    background-color: #dc3545;
-}
-
-@keyframes fadeout {
-    0% { opacity: 1; }
-    80% { opacity: 1; }
-    100% { opacity: 0; }
+#statusMessage[style*="blue"] {
+    background-color: #cfe2ff;
+    color: #052c65;
 }
 
 #aulasSobrantes {
     margin-top: 20px;
-    padding: 10px;
-    border: 1px solid #ccc;
+    padding: 15px;
+    background-color: #f8d7da;
+    color: #721c24;
     border-radius: 4px;
-    background-color: #fff;
 }
 
-.checkbox-group {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+#aulasSobrantes h4 {
+    margin-top: 0;
+}
+
+/* Estilo para as mensagens flutuantes (feedback) */
+.floating-message {
+    position: absolute;
+    transform: translateX(-50%);
+    padding: 8px 12px;
+    border-radius: 4px;
+    font-weight: bold;
+    z-index: 1000;
+    text-align: center;
+    white-space: nowrap;
+    opacity: 0;
+    animation: fadeInOut 3s forwards;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.floating-message-success {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.floating-message-error {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+@keyframes fadeInOut {
+    0% { opacity: 0; top: -20px; }
+    10% { opacity: 1; top: 0px; }
+    90% { opacity: 1; top: 0px; }
+    100% { opacity: 0; top: -20px; }
+}
+
+/* Responsividade para telas menores */
+@media (max-width: 768px) {
+    .container {
+        flex-direction: column;
+    }
+    
+    .card {
+        flex: 1 1 100%;
+    }
+
+    .btn-group {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    #gradeTable {
+        font-size: 10px;
+        min-width: 600px; /* Mantém a tabela legível em telas pequenas */
+        overflow-x: auto;
+        white-space: nowrap;
+    }
+    
+    #gradeTable tbody td, #gradeTable thead th {
+        padding: 5px 2px;
+        font-size: 10px;
+    }
+
+    #gradeTable thead th {
+        font-size: 11px;
+    }
 }
