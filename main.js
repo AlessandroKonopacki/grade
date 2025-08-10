@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const diasDaSemana = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta'];
     const aulasPorDia = 5;
+    const aulasPeriodo = [2, 3, 4, 5, 6];
     const turmasFundamental = ['6º ano', '7º ano', '8º ano', '9º ano'];
     const turmasMedio = ['1º EM', '2º EM', '3º EM'];
     const todasTurmas = [...turmasFundamental, ...turmasMedio];
@@ -58,31 +59,35 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Função para renderizar a grade horária
+    // Função para renderizar a grade horária NOVO FORMATO
     function renderizarGrade() {
         gradeTableBody.innerHTML = '';
-        diasDaSemana.forEach(dia => {
-            for (let i = 1; i <= aulasPorDia; i++) {
-                const tr = document.createElement('tr');
-                const tdDiaAula = document.createElement('td');
-                tdDiaAula.textContent = `${dia} - ${i}ª aula`;
-                tr.appendChild(tdDiaAula);
+        aulasPeriodo.forEach(aula => {
+            const tr = document.createElement('tr');
+            const tdAula = document.createElement('td');
+            tdAula.textContent = `${aula}ª aula`;
+            tr.appendChild(tdAula);
 
+            diasDaSemana.forEach(dia => {
                 todasTurmas.forEach(turma => {
                     const tdProfessor = document.createElement('td');
                     tdProfessor.dataset.dia = dia;
-                    tdProfessor.dataset.aula = i;
+                    tdProfessor.dataset.aula = aula;
                     tdProfessor.dataset.turma = turma;
-                    const professor = gradeHoraria[dia]?.[i]?.[turma] || '';
-                    tdProfessor.textContent = professor;
+                    const professorDisciplina = gradeHoraria[dia]?.[aula]?.[turma] || '';
+                    if (professorDisciplina) {
+                        const [nomeProfessor, disciplina] = professorDisciplina.split(' (');
+                        const disciplinaFormatada = disciplina.slice(0, -1);
+                        tdProfessor.innerHTML = `${nomeProfessor}<br>${disciplinaFormatada}<br>${turma}`;
+                    }
                     tr.appendChild(tdProfessor);
                 });
-                gradeTableBody.appendChild(tr);
-            }
+            });
+            gradeTableBody.appendChild(tr);
         });
     }
 
-    // NOVA FUNÇÃO: Renderiza as aulas que não puderam ser alocadas
+    // RENDERIZA AULAS SOBRANTES
     function renderizarAulasSobrantes(aulasRestantes) {
         aulasSobrantesDiv.innerHTML = '';
         const aulasFaltantes = Object.values(aulasRestantes).filter(d => d.aulas > 0);
@@ -106,7 +111,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Função principal para o algoritmo de distribuição
+    // DISTRIBUIDOR DE AULAS
     function distribuirAulas(shuffle = false) {
         if (professores.length === 0 || cargasHorarias.length === 0) {
             statusMessage.textContent = 'Por favor, cadastre professores e cargas horárias antes de gerar a grade.';
@@ -129,7 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 aulas: carga.aulas,
                 limiteDiario: carga.limiteDiario,
                 professor: professor,
-                turma: carga.turma // Adiciona a turma para a nova função
+                turma: carga.turma
             };
         });
 
@@ -146,10 +151,10 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         for (const dia of diasDaSemana) {
-            for (let i = 1; i <= aulasPorDia; i++) {
+            for (const aula of aulasPeriodo) {
                 for (const turma of todasTurmas) {
-                    for (const aula of aulasArray) {
-                        const { aulas, limiteDiario, professor, chave } = aula;
+                    for (const aulaRestante of aulasArray) {
+                        const { aulas, limiteDiario, professor, chave } = aulaRestante;
                         const [turmaCarga, disciplinaCarga] = chave.split('-');
 
                         if (turmaCarga !== turma) continue;
@@ -166,14 +171,14 @@ document.addEventListener('DOMContentLoaded', () => {
                                 (professor.nivelEnsino === 'Medio' && turmasMedio.includes(turma)) ||
                                 (professor.nivelEnsino === 'Ambos')
                             ) &&
-                            !estaEmOutraTurma(dia, i, professor.nome) &&
-                            !aulasConsecutivas(dia, i, turma, professor.nome) &&
+                            !estaEmOutraTurma(dia, aula, professor.nome) &&
+                            !aulasConsecutivas(dia, aula, turma, professor.nome) &&
                             podeTerMaisAulasHoje;
                         
                         if (podeAlocar) {
                             gradeHoraria[dia] = gradeHoraria[dia] || {};
-                            gradeHoraria[dia][i] = gradeHoraria[dia][i] || {};
-                            gradeHoraria[dia][i][turma] = `${professor.nome} (${disciplinaCarga})`;
+                            gradeHoraria[dia][aula] = gradeHoraria[dia][aula] || {};
+                            gradeHoraria[dia][aula][turma] = `${professor.nome} (${disciplinaCarga})`;
                             aulasRestantes[chave].aulas--;
                             aulasPorDisciplinaDia[turma][dia][disciplinaCarga] = aulasHoje + 1;
                             break;
@@ -192,10 +197,10 @@ document.addEventListener('DOMContentLoaded', () => {
             statusMessage.style.color = 'green';
         }
         renderizarGrade();
-        renderizarAulasSobrantes(aulasRestantes); // Chama a nova função
+        renderizarAulasSobrantes(aulasRestantes);
     }
     
-    // Ferramenta de troca de professores
+    // FERRAMENTA DE TROCA DE PROFESSORES
     function handleTableClick(e) {
         if (!swapMode) return;
 
@@ -216,18 +221,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 dia: selectedCell.dataset.dia,
                 aula: selectedCell.dataset.aula,
                 turma: selectedCell.dataset.turma,
-                professorDisciplina: selectedCell.textContent
+                professorDisciplina: selectedCell.innerHTML.replace(/<br>/g, ' ').split(' (')[0] + ' (' + selectedCell.innerHTML.replace(/<br>/g, ' ').split(' (')[1]
             };
 
             const cell2Data = {
                 dia: cell.dataset.dia,
                 aula: cell.dataset.aula,
                 turma: cell.dataset.turma,
-                professorDisciplina: cell.textContent
+                professorDisciplina: cell.innerHTML.replace(/<br>/g, ' ').split(' (')[0] + ' (' + cell.innerHTML.replace(/<br>/g, ' ').split(' (')[1]
             };
 
             const getProfessorInfo = (text) => {
-                if (!text) return { nome: '', disciplina: '' };
+                if (!text || text.trim() === '(<br>)') return { nome: '', disciplina: '' };
                 const match = text.match(/(.*)\s\((.*)\)/);
                 return match ? { nome: match[1], disciplina: match[2].toLowerCase() } : { nome: text, disciplina: '' };
             };
@@ -242,11 +247,17 @@ document.addEventListener('DOMContentLoaded', () => {
             const validation2 = podeAlocar(prof2Obj, cell1Data);
             
             if (validation1.isValid && validation2.isValid) {
-                gradeHoraria[cell1Data.dia][cell1Data.aula][cell1Data.turma] = cell2Data.professorDisciplina;
-                gradeHoraria[cell2Data.dia][cell2Data.aula][cell2Data.turma] = cell1Data.professorDisciplina;
+                const professorDisciplina1 = cell1Data.professorDisciplina;
+                const professorDisciplina2 = cell2Data.professorDisciplina;
                 
-                selectedCell.textContent = cell2Data.professorDisciplina;
-                cell.textContent = cell1Data.professorDisciplina;
+                gradeHoraria[cell1Data.dia][cell1Data.aula][cell1Data.turma] = professorDisciplina2;
+                gradeHoraria[cell2Data.dia][cell2Data.aula][cell2Data.turma] = professorDisciplina1;
+                
+                const [nomeProf1, disciplina1] = professorDisciplina1.split(' (');
+                const [nomeProf2, disciplina2] = professorDisciplina2.split(' (');
+
+                selectedCell.innerHTML = professorDisciplina2 ? `${nomeProf2}<br>${disciplina2.slice(0, -1)}<br>${cell1Data.turma}` : '';
+                cell.innerHTML = professorDisciplina1 ? `${nomeProf1}<br>${disciplina1.slice(0, -1)}<br>${cell2Data.turma}` : '';
                 
                 displayFloatingMessage('Troca realizada com sucesso!', 'success', cell);
 
@@ -260,6 +271,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
+    // FUNÇÃO DE FEEDBACK FLUTUANTE
     function displayFloatingMessage(message, type, targetElement) {
         const floatingMessage = document.createElement('div');
         floatingMessage.textContent = message;
@@ -288,14 +300,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function aulasConsecutivas(dia, aula, turma, professorNome) {
-        if (aula > 1) {
-            return gradeHoraria[dia]?.[aula - 1]?.[turma]?.includes(professorNome);
+        const aulaAnterior = aulasPeriodo[aulasPeriodo.indexOf(aula) - 1];
+        const aulaPosterior = aulasPeriodo[aulasPeriodo.indexOf(aula) + 1];
+
+        if (aulaAnterior && gradeHoraria[dia]?.[aulaAnterior]?.[turma]?.includes(professorNome)) {
+            return true;
+        }
+        if (aulaPosterior && gradeHoraria[dia]?.[aulaPosterior]?.[turma]?.includes(professorNome)) {
+            return true;
         }
         return false;
     }
 
     function podeAlocar(professorObj, slotData) {
-        let message = '';
         const { nome, nivelEnsino, disponibilidade } = professorObj || {};
         const { dia, aula, turma } = slotData;
 
@@ -315,16 +332,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const conflito = todasTurmas.some(turmaConflito => {
             if (turmaConflito !== turma && gradeHoraria[dia]?.[aula]?.[turmaConflito]?.includes(nome)) {
-                message = `Erro: ${nome} já tem aula na ${turmaConflito} na ${dia}, ${aula}ª aula.`;
                 return true;
             }
             return false;
         });
-        if (conflito) return { isValid: false, message: message };
+        if (conflito) return { isValid: false, message: `Erro: ${nome} já tem aula em outra turma na ${dia}, ${aula}ª aula.` };
 
-        const aulaAnterior = gradeHoraria[dia]?.[parseInt(aula) - 1]?.[turma];
-        const aulaPosterior = gradeHoraria[dia]?.[parseInt(aula) + 1]?.[turma];
-        if ((aulaAnterior && aulaAnterior.includes(nome)) || (aulaPosterior && aulaPosterior.includes(nome))) {
+        if (aulasConsecutivas(dia, parseInt(aula), turma, nome)) {
             return { isValid: false, message: `Erro: ${nome} teria aulas consecutivas na ${turma}.` };
         }
         
