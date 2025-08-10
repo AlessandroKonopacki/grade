@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const trocarBtn = document.getElementById('trocarBtn');
     const gradeTableBody = document.getElementById('gradeTable').querySelector('tbody');
     const statusMessage = document.getElementById('statusMessage');
+    const aulasSobrantesDiv = document.getElementById('aulasSobrantes');
 
     const diasDaSemana = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta'];
     const aulasPorDia = 5;
@@ -81,6 +82,30 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // NOVA FUNÇÃO: Renderiza as aulas que não puderam ser alocadas
+    function renderizarAulasSobrantes(aulasRestantes) {
+        aulasSobrantesDiv.innerHTML = '';
+        const aulasFaltantes = Object.values(aulasRestantes).filter(d => d.aulas > 0);
+        
+        if (aulasFaltantes.length > 0) {
+            const titulo = document.createElement('h4');
+            titulo.textContent = 'Aulas não alocadas:';
+            aulasSobrantesDiv.appendChild(titulo);
+            
+            const lista = document.createElement('ul');
+            aulasFaltantes.forEach(aula => {
+                const li = document.createElement('li');
+                li.textContent = `${aula.professor.disciplina} na turma ${aula.turma} - ${aula.aulas} aula(s) restante(s).`;
+                lista.appendChild(li);
+            });
+            aulasSobrantesDiv.appendChild(lista);
+        } else {
+            const mensagem = document.createElement('p');
+            mensagem.textContent = 'Todas as aulas foram alocadas com sucesso.';
+            aulasSobrantesDiv.appendChild(mensagem);
+        }
+    }
+
     // Função principal para o algoritmo de distribuição
     function distribuirAulas(shuffle = false) {
         if (professores.length === 0 || cargasHorarias.length === 0) {
@@ -103,7 +128,8 @@ document.addEventListener('DOMContentLoaded', () => {
             aulasRestantes[`${carga.turma}-${carga.disciplina}`] = {
                 aulas: carga.aulas,
                 limiteDiario: carga.limiteDiario,
-                professor: professor
+                professor: professor,
+                turma: carga.turma // Adiciona a turma para a nova função
             };
         });
 
@@ -159,14 +185,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const aulasFaltantes = Object.values(aulasRestantes).some(d => d.aulas > 0);
         if (aulasFaltantes) {
-            statusMessage.textContent = 'Não foi possível alocar todas as aulas. Verifique as disponibilidades e cargas horárias. É possível que o limite de aulas por dia esteja muito restrito.';
+            statusMessage.textContent = 'Não foi possível alocar todas as aulas. Verifique as disponibilidades e cargas horárias. Uma lista das aulas restantes foi gerada abaixo.';
             statusMessage.style.color = 'red';
-            console.log('Aulas restantes:', aulasRestantes);
         } else {
             statusMessage.textContent = 'Grade horária gerada com sucesso!';
             statusMessage.style.color = 'green';
         }
         renderizarGrade();
+        renderizarAulasSobrantes(aulasRestantes); // Chama a nova função
     }
     
     // Ferramenta de troca de professores
@@ -212,12 +238,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const prof1Obj = professores.find(p => p.nome === prof1.nome);
             const prof2Obj = professores.find(p => p.nome === prof2.nome);
 
-            // Validação das novas posições
             const validation1 = podeAlocar(prof1Obj, cell2Data);
             const validation2 = podeAlocar(prof2Obj, cell1Data);
             
             if (validation1.isValid && validation2.isValid) {
-                // Se a troca for válida, atualiza o objeto e a interface
                 gradeHoraria[cell1Data.dia][cell1Data.aula][cell1Data.turma] = cell2Data.professorDisciplina;
                 gradeHoraria[cell2Data.dia][cell2Data.aula][cell2Data.turma] = cell1Data.professorDisciplina;
                 
@@ -227,7 +251,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 displayFloatingMessage('Troca realizada com sucesso!', 'success', cell);
 
             } else {
-                // Exibe a mensagem de erro específica
                 const errorMessage = !validation1.isValid ? validation1.message : validation2.message;
                 displayFloatingMessage(errorMessage, 'error', cell);
             }
@@ -237,7 +260,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    // Função para exibir a mensagem flutuante
     function displayFloatingMessage(message, type, targetElement) {
         const floatingMessage = document.createElement('div');
         floatingMessage.textContent = message;
@@ -254,7 +276,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 3000);
     }
     
-
     // ----- Funções de Verificação de Restrições -----
     function estaEmOutraTurma(dia, aula, professorNome) {
         let emOutra = false;
@@ -273,10 +294,9 @@ document.addEventListener('DOMContentLoaded', () => {
         return false;
     }
 
-    // Função de validação mais robusta
     function podeAlocar(professorObj, slotData) {
         let message = '';
-        const { nome, disciplina, nivelEnsino, disponibilidade } = professorObj || {};
+        const { nome, nivelEnsino, disponibilidade } = professorObj || {};
         const { dia, aula, turma } = slotData;
 
         if (!nome) return { isValid: true };
