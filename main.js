@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const novaGradeBtn = document.getElementById('novaGradeBtn');
     const trocarBtn = document.getElementById('trocarBtn');
     const gradeTableBody = document.getElementById('gradeTable').querySelector('tbody');
-    const statusMessage = document = document.getElementById('statusMessage');
+    const statusMessage = document.getElementById('statusMessage');
     const aulasSobrantesDiv = document.getElementById('aulasSobrantes');
 
     const diasDaSemana = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta'];
