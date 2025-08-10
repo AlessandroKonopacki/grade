@@ -3,9 +3,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const professoresList = document.getElementById('professoresList');
     const cargaHorariaForm = document.getElementById('cargaHorariaForm');
     const cargaHorariaList = document.getElementById('cargaHorariaList');
-    const turmaCargaSelect = document.getElementById('turmaCarga');
-    const aula6Group = document.getElementById('aula6Group');
-    const aula6AtivadaCheckbox = document.getElementById('aula6Ativada');
+    const ativarAula6GlobalCheckbox = document.getElementById('ativarAula6Global');
     const gerarGradeBtn = document.getElementById('gerarGradeBtn');
     const novaGradeBtn = document.getElementById('novaGradeBtn');
     const trocarBtn = document.getElementById('trocarBtn');
@@ -53,17 +51,16 @@ document.addEventListener('DOMContentLoaded', () => {
         cargaHorariaList.innerHTML = '';
         cargasHorarias.forEach((carga, index) => {
             const geminadaText = carga.aulaGeminada ? '(Aulas Consecutivas Ativadas)' : '';
-            const aula6Text = carga.aula6Ativada ? ' (+6ª aula)' : '';
             const li = document.createElement('li');
             li.innerHTML = `
-                <span>${carga.turma}: ${carga.disciplina} - ${carga.aulas} aulas/sem (Max ${carga.limiteDiario}/dia) ${geminadaText} ${aula6Text}</span>
+                <span>${carga.turma}: ${carga.disciplina} - ${carga.aulas} aulas/sem (Max ${carga.limiteDiario}/dia) ${geminadaText}</span>
                 <button class="remove-btn" data-index="${index}" data-type="carga">Remover</button>
             `;
             cargaHorariaList.appendChild(li);
         });
     }
 
-    // Função para renderizar a grade horária NOVO FORMATO
+    // Função para renderizar a grade horária
     function renderizarGrade() {
         gradeTableBody.innerHTML = '';
         const aulasPeriodoFinal = verificarAulas6();
@@ -117,10 +114,9 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
-    // Verifica se alguma turma tem a 6ª aula ativada
+    // Verifica se a 6ª aula está ativada globalmente
     function verificarAulas6() {
-        const temAula6 = cargasHorarias.some(carga => carga.aula6Ativada);
-        return temAula6 ? [2, 3, 4, 5, 6] : aulasPeriodoPadrao;
+        return ativarAula6GlobalCheckbox.checked ? [2, 3, 4, 5, 6] : aulasPeriodoPadrao;
     }
 
     // DISTRIBUIDOR DE AULAS
@@ -148,8 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 limiteDiario: carga.limiteDiario,
                 professor: professor,
                 turma: carga.turma,
-                aulaGeminada: carga.aulaGeminada,
-                aula6Ativada: carga.aula6Ativada
+                aulaGeminada: carga.aulaGeminada
             };
         });
 
@@ -174,9 +169,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
                         if (turmaCarga !== turma) continue;
                         if (aulas <= 0) continue;
-                        
-                        // Ignora a 6ª aula para turmas que não a possuem
-                        if (aula === 6 && !aulaRestante.aula6Ativada) continue;
                         
                         const aulasHoje = aulasPorDisciplinaDia[turma][dia][disciplinaCarga] || 0;
                         const podeTerMaisAulasHoje = aulasHoje < limiteDiario;
@@ -218,14 +210,13 @@ document.addEventListener('DOMContentLoaded', () => {
         renderizarAulasSobrantes(aulasRestantes);
     }
     
-    // FERRAMENTA DE TROCA DE PROFESSORES (CORRIGIDA)
+    // FERRAMENTA DE TROCA DE PROFESSORES
     function handleTableClick(e) {
         if (!swapMode) return;
 
         const cell = e.target.closest('td[data-turma]');
         if (!cell) return;
 
-        // Função auxiliar para extrair professor e disciplina da célula
         const getProfessorInfoFromCell = (cell) => {
             const lines = cell.innerHTML.split('<br>');
             if (lines.length < 2 || lines[0].trim() === '') return { nome: null, disciplina: null };
@@ -251,16 +242,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             
-            // Pega as informações do professor 1
             const prof1 = getProfessorInfoFromCell(selectedCell);
-            // Pega as informações do professor 2
             const prof2 = getProfessorInfoFromCell(cell);
             
-            // Encontra os objetos completos de cada professor para a validação
             const prof1Obj = professores.find(p => p.nome === prof1.nome && p.disciplina === prof1.disciplina);
             const prof2Obj = professores.find(p => p.nome === prof2.nome && p.disciplina === prof2.disciplina);
             
-            // Monta os dados dos slots para a validação
             const cell1Data = {
                 dia: selectedCell.dataset.dia,
                 aula: selectedCell.dataset.aula,
@@ -274,7 +261,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 disciplina: prof2.disciplina
             };
 
-            // Valida se a troca é possível
             const validation1 = podeAlocar(prof1Obj, cell2Data);
             const validation2 = podeAlocar(prof2Obj, cell1Data);
 
@@ -282,11 +268,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 const professorDisciplina1 = prof1Obj ? `${prof1.nome} (${prof1.disciplina})` : '';
                 const professorDisciplina2 = prof2Obj ? `${prof2.nome} (${prof2.disciplina})` : '';
 
-                // Troca os professores na estrutura de dados
                 gradeHoraria[cell1Data.dia][cell1Data.aula][cell1Data.turma] = professorDisciplina2;
                 gradeHoraria[cell2Data.dia][cell2Data.aula][cell2Data.turma] = professorDisciplina1;
                 
-                // Atualiza a visualização da tabela
                 selectedCell.innerHTML = professorDisciplina2 ? `${prof2.nome}<br>${prof2.disciplina.slice(0, 3)}.` : '';
                 cell.innerHTML = professorDisciplina1 ? `${prof1.nome}<br>${prof1.disciplina.slice(0, 3)}.` : '';
 
@@ -380,16 +364,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // ----- Event Listeners -----
-    turmaCargaSelect.addEventListener('change', (e) => {
-        const turma = e.target.value;
-        if (turmasMedio.includes(turma)) {
-            aula6Group.style.display = 'flex';
-        } else {
-            aula6Group.style.display = 'none';
-            aula6AtivadaCheckbox.checked = false;
-        }
-    });
-    
     professorForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const nome = document.getElementById('nome').value;
@@ -417,7 +391,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const aulas = parseInt(document.getElementById('aulasCarga').value);
         const limiteDiario = parseInt(document.getElementById('limiteDiario').value);
         const aulaGeminada = document.getElementById('aulaGeminada').checked;
-        const aula6Ativada = document.getElementById('aula6Ativada').checked;
 
         if (turma && disciplina && !isNaN(aulas) && aulas >= 0 && !isNaN(limiteDiario) && limiteDiario > 0) {
             const index = cargasHorarias.findIndex(c => c.turma === turma && c.disciplina === disciplina);
@@ -425,9 +398,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 cargasHorarias[index].aulas = aulas;
                 cargasHorarias[index].limiteDiario = limiteDiario;
                 cargasHorarias[index].aulaGeminada = aulaGeminada;
-                cargasHorarias[index].aula6Ativada = aula6Ativada;
             } else {
-                cargasHorarias.push({ turma, disciplina: disciplina.toLowerCase(), aulas, limiteDiario, aulaGeminada, aula6Ativada });
+                cargasHorarias.push({ turma, disciplina: disciplina.toLowerCase(), aulas, limiteDiario, aulaGeminada });
             }
             localStorage.setItem('cargasHorarias', JSON.stringify(cargasHorarias));
             renderizarCargasHorarias();
@@ -452,6 +424,8 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
     });
+    
+    ativarAula6GlobalCheckbox.addEventListener('change', renderizarGrade);
 
     gerarGradeBtn.addEventListener('click', () => distribuirAulas(false));
     novaGradeBtn.addEventListener('click', () => distribuirAulas(true));
