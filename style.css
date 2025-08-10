@@ -294,3 +294,9 @@ ul li {
         font-size: 11px;
     }
 }
+
+.aula-selected {
+    background-color: #e0f2ff; /* Cor de destaque para a aula selecionada */
+    border: 1px dashed #007bff;
+    border-radius: 4px;
+}

@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const novaGradeBtn = document.getElementById('novaGradeBtn');
     const trocarBtn = document.getElementById('trocarBtn');
     const gradeTableBody = document.getElementById('gradeTable').querySelector('tbody');
-    const statusMessage = document.getElementById('statusMessage');
+    const statusMessage = document = document.getElementById('statusMessage');
     const aulasSobrantesDiv = document.getElementById('aulasSobrantes');
 
     const diasDaSemana = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta'];
@@ -23,6 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let gradeHoraria = {};
     let swapMode = false;
     let selectedCell = null;
+    let selectedAula = null;
 
     function shuffleArray(array) {
         for (let i = array.length - 1; i > 0; i--) {
@@ -218,15 +219,13 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function handleTableClick(e) {
         if (!swapMode) return;
-        const cell = e.target.closest('td[data-turma]');
-        if (!cell) return;
+        
+        const targetElement = e.target.closest('p[data-aula]');
+        if (!targetElement) return;
 
-        const getProfessorInfoFromCell = (cellContent, aula) => {
-            const lines = Array.from(cellContent.querySelectorAll('p'));
-            const p = lines.find(p => p.dataset.aula == aula);
-            if (!p) return { nome: null, disciplina: null };
-
-            const text = p.textContent.split(': ')[1];
+        const cell = targetElement.closest('td');
+        const getProfessorInfoFromElement = (element) => {
+            const text = element.textContent.split(': ')[1];
             const nome = text.split(' (')[0];
             const disciplinaAbreviada = text.split('(')[1].replace(')', '').replace('.', '');
             
@@ -240,49 +239,58 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!selectedCell) {
             selectedCell = cell;
-            cell.classList.add('grade-cell-selected');
+            selectedAula = targetElement;
+            selectedAula.classList.add('aula-selected');
         } else {
-            if (selectedCell === cell) {
-                selectedCell.classList.remove('grade-cell-selected');
+            if (selectedAula === targetElement) {
+                selectedAula.classList.remove('aula-selected');
                 selectedCell = null;
+                selectedAula = null;
                 return;
             }
-            
-            const prof1 = getProfessorInfoFromCell(selectedCell, 6); // Exemplo, vamos precisar de uma forma de saber qual aula trocar
-            const prof2 = getProfessorInfoFromCell(cell, 6);
+
+            const prof1 = getProfessorInfoFromElement(selectedAula);
+            const prof2 = getProfessorInfoFromElement(targetElement);
             
             const prof1Obj = professores.find(p => p.nome === prof1.nome && p.disciplina === prof1.disciplina);
             const prof2Obj = professores.find(p => p.nome === prof2.nome && p.disciplina === prof2.disciplina);
             
             const cell1Data = {
                 dia: selectedCell.dataset.dia,
-                aula: '6', // Este exemplo assume a 6ª aula. A lógica real seria mais complexa.
+                aula: selectedAula.dataset.aula,
                 turma: selectedCell.dataset.turma,
                 disciplina: prof1.disciplina
             };
             const cell2Data = {
                 dia: cell.dataset.dia,
-                aula: '6',
+                aula: targetElement.dataset.aula,
                 turma: cell.dataset.turma,
                 disciplina: prof2.disciplina
             };
-
+            
+            // Verifica a validade da troca
             const validation1 = podeAlocar(prof1Obj, cell2Data);
             const validation2 = podeAlocar(prof2Obj, cell1Data);
 
             if (validation1.isValid && validation2.isValid) {
                 const professorDisciplina1 = prof1Obj ? `${prof1.nome} (${prof1.disciplina})` : '';
                 const professorDisciplina2 = prof2Obj ? `${prof2.nome} (${prof2.disciplina})` : '';
+
+                // Faz a troca no objeto gradeHoraria
                 gradeHoraria[cell1Data.dia][cell1Data.aula][cell1Data.turma] = professorDisciplina2;
                 gradeHoraria[cell2Data.dia][cell2Data.aula][cell2Data.turma] = professorDisciplina1;
+
+                // Atualiza a visualização
                 renderizarGrade();
                 displayFloatingMessage('Troca realizada com sucesso!', 'success', cell);
             } else {
                 const errorMessage = !validation1.isValid ? validation1.message : validation2.message;
                 displayFloatingMessage(errorMessage, 'error', cell);
             }
-            selectedCell.classList.remove('grade-cell-selected');
+
+            selectedAula.classList.remove('aula-selected');
             selectedCell = null;
+            selectedAula = null;
         }
     }
     
@@ -433,14 +441,15 @@ document.addEventListener('DOMContentLoaded', () => {
         swapMode = !swapMode;
         if (swapMode) {
             trocarBtn.textContent = 'Desativar Troca';
-            statusMessage.textContent = 'Modo de troca ativado. Clique em duas células para trocar os professores.';
+            statusMessage.textContent = 'Modo de troca ativado. Clique em duas AULAS para trocar os professores.';
             statusMessage.style.color = 'blue';
         } else {
             trocarBtn.textContent = 'Ativar Troca de Professores';
             statusMessage.textContent = '';
-            if (selectedCell) {
-                selectedCell.classList.remove('grade-cell-selected');
+            if (selectedAula) {
+                selectedAula.classList.remove('aula-selected');
                 selectedCell = null;
+                selectedAula = null;
             }
         }
     });
