@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const diasDaSemana = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta'];
     const aulasPorDia = 5;
-    const aulasPeriodo = [2, 3, 4, 5, 6];
+    const aulasPeriodo = [1, 2, 3, 4, 5];
     const turmasFundamental = ['6º ano', '7º ano', '8º ano', '9º ano'];
     const turmasMedio = ['1º EM', '2º EM', '3º EM'];
     const todasTurmas = [...turmasFundamental, ...turmasMedio];
