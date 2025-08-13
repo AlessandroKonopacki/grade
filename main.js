@@ -85,41 +85,69 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     function renderizarGrade() {
-        gradeTableBody.innerHTML = '';
-        const aulasPorTurma = {};
-
-        todasTurmas.forEach(turma => aulasPorTurma[turma] = getAulasPeriodo(turma));
-
-        for (let aula = 2; aula <= 6; aula++) { // Itera por todas as aulas possíveis (2 a 6)
-            const tr = document.createElement('tr');
-            const tdAula = document.createElement('td');
-            tdAula.textContent = `${aula}ª Aula`;
-            tr.appendChild(tdAula);
+        const gradeTable = document.getElementById('gradeTable');
+        gradeTable.innerHTML = '';
         
-            todasTurmas.forEach(turma => {
-                const tdTurma = document.createElement('td');
-                tdTurma.dataset.aula = aula;
-                tdTurma.dataset.turma = turma;
-                tdTurma.classList.add('grade-cell');
+        // Cabeçalho da tabela
+        const thead = document.createElement('thead');
+        const headerRow = document.createElement('tr');
         
-                if (gradeHoraria[diasDaSemana[0]]?.[aula]) { // Verifica se a aula existe para a primeira turma
-                    diasDaSemana.forEach(dia => {
-                        const professorDisciplina = gradeHoraria[dia]?.[aula]?.[turma];
-                        if (professorDisciplina) {
-                            const [nomeProfessor, disciplina] = professorDisciplina.split(' (');
-                            const disciplinaFormatada = disciplina.slice(0, 3);
-                            const p = document.createElement('p');
-                            p.dataset.dia = dia;
-                            p.textContent = `${nomeProfessor} (${disciplinaFormatada})`;
-                            tdTurma.appendChild(p);
-                        }
-                    });
+        const thDiaAula = document.createElement('th');
+        thDiaAula.textContent = 'Dia/Aula';
+        headerRow.appendChild(thDiaAula);
+
+        todasTurmas.forEach(turma => {
+            const thTurma = document.createElement('th');
+            thTurma.textContent = turma;
+            headerRow.appendChild(thTurma);
+        });
+        
+        thead.appendChild(headerRow);
+        gradeTable.appendChild(thead);
+
+        // Corpo da tabela
+        const tbody = document.createElement('tbody');
+        
+        diasDaSemana.forEach(dia => {
+            let aulasDoDia = getAulasPeriodo(todasTurmas[0]); // Pega as aulas de uma turma para definir o rowspan
+            
+            aulasDoDia.forEach((aula, index) => {
+                const tr = document.createElement('tr');
+
+                // Célula do dia da semana com rowspan
+                if (index === 0) {
+                    const tdDia = document.createElement('td');
+                    tdDia.textContent = dia;
+                    tdDia.rowSpan = aulasDoDia.length;
+                    tdDia.style.verticalAlign = 'top';
+                    tr.appendChild(tdDia);
                 }
-                tr.appendChild(tdTurma);
+
+                // Células das turmas
+                todasTurmas.forEach(turma => {
+                    const tdConteudo = document.createElement('td');
+                    tdConteudo.classList.add('grade-cell');
+                    tdConteudo.dataset.dia = dia;
+                    tdConteudo.dataset.aula = aula;
+                    tdConteudo.dataset.turma = turma;
+                    
+                    const professorDisciplina = gradeHoraria[dia]?.[aula]?.[turma];
+                    if (professorDisciplina) {
+                        const [nomeProfessor, disciplina] = professorDisciplina.split(' (');
+                        const disciplinaFormatada = disciplina.substring(0, disciplina.length - 1);
+                        tdConteudo.textContent = `${nomeProfessor} (${disciplinaFormatada})`;
+                    }
+
+                    tr.appendChild(tdConteudo);
+                });
+                
+                tbody.appendChild(tr);
             });
-            gradeTableBody.appendChild(tr);
-        }
+        });
+        
+        gradeTable.appendChild(tbody);
     }
+
     
     function renderizarAulasSobrantes(aulasRestantes) {
         aulasSobrantesDiv.innerHTML = '';
