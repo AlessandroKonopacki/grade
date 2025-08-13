@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             salvarDados('turmas', turmas);
         };
-        
+
         turmaForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const nomeTurma = document.getElementById('nomeTurma').value.trim();
@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 renderizarTurmas();
             }
         });
-        
+
         turmasList.addEventListener('click', (e) => {
             if (e.target.classList.contains('remover')) {
                 const index = e.target.dataset.index;
@@ -89,10 +89,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 const li = document.createElement('li');
                 li.innerHTML = `
-                    ${professor.nome} - Disciplinas: ${professor.disciplinas} (${professor.nivel}) <br>
-                    <span>${disponibilidade}</span>
-                    <button class="remover" data-index="${index}">Remover</button>
-                `;
+            ${professor.nome} - Disciplinas: ${professor.disciplinas} (${professor.nivel}) <br>
+            <span>${disponibilidade}</span>
+            <button class="remover" data-index="${index}">Remover</button>
+        `;
                 professoresList.appendChild(li);
             });
             salvarDados('professores', professores);
@@ -114,7 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             salvarDados('cargasHorarias', cargasHorarias);
         };
-        
+
         const popularSelects = () => {
             professorCargaSelect.innerHTML = '<option value="">Selecione um professor</option>';
             professores.forEach(p => {
@@ -168,7 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const aulasPorSemana = parseInt(document.getElementById('aulasPorSemana').value, 10);
             const limiteAulas = parseInt(document.getElementById('limiteAulas').value, 10);
             const aulasGeminadas = document.getElementById('aulasGeminadas').checked;
-        
+
             if (professorNome && turma && disciplina && aulasPorSemana > 0 && limiteAulas > 0) {
                 cargasHorarias.push({
                     professorNome,
@@ -255,7 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
         gerarGradeIABtn.addEventListener('click', () => {
             gerarGradeIABtn.disabled = true;
             novaGradeBtn.disabled = true;
-            
+
             progressBarContainer.style.display = 'flex';
             progressBar.style.width = '0%';
             progressText.textContent = 'Gerando...';
@@ -267,7 +267,7 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             const worker = new Worker('worker.js');
-            
+
             const gradeAnterior = carregarDados('gradeAnterior');
             if (gradeAnterior) {
                 const usarGradeAnterior = confirm('Encontrada uma grade anterior. Deseja usar ela como base para a nova grade?');
@@ -289,8 +289,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     progressText.textContent = 'Completo!';
                     renderizarGrade(e.data.grade);
                     renderizarAulasSobrantes(e.data.aulasSobrantes);
-                    
-                    salvarDados('gradeAnterior', e.data.grade); 
+
+                    salvarDados('gradeAnterior', e.data.grade);
                     salvarDados('aulasSobrantesAnterior', e.data.aulasSobrantes);
 
                     gerarGradeIABtn.disabled = false;
