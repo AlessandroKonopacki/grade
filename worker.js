@@ -6,8 +6,8 @@ let params;
 let diasDaSemana;
 let todasTurmas;
 let aulasPeriodoPadrao;
-const numGeracoes = 10000;
-const tamanhoPopulacao = 100;
+const numGeracoes = 50;
+const tamanhoPopulacao = 10;
 const taxaMutacao = 0.1;
 
 // FUNÇÕES AUXILIARES
