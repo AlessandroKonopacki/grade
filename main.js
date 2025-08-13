@@ -416,49 +416,79 @@ document.addEventListener('DOMContentLoaded', () => {
         return score;
     }
     
-    function executarAlgoritmoGenetico() {
-        const TAMANHO_POPULACAO = 50;
-        const NUM_GERACOES = 100;
-        let populacao = [];
+   async function executarAlgoritmoGenetico() {
+    const TAMANHO_POPULACAO = 50;
+    const NUM_GERACOES = 200; // Aumentamos as gerações para uma melhor solução
+    const POPULACAO_ELITE = 10;
+    let populacao = [];
 
-        for (let i = 0; i < TAMANHO_POPULACAO; i++) {
-            populacao.push(gerarGradeInicial());
-        }
-
-        for (let geracao = 0; geracao < NUM_GERACOES; geracao++) {
-            populacao.forEach(individuo => {
-                individuo.fitness = calcularFitness(individuo.grade);
-            });
-            
-            populacao.sort((a, b) => b.fitness - a.fitness);
-
-            if (populacao[0].aulasRestantes.length === 0) {
-                console.log(`Solução perfeita encontrada na geração ${geracao}!`);
-                gradeHoraria = populacao[0].grade;
-                renderizarGrade();
-                renderizarAulasSobrantes(populacao[0].aulasRestantes);
-                return;
-            }
-
-            const novaPopulacao = populacao.slice(0, 10);
-            while (novaPopulacao.length < TAMANHO_POPULACAO) {
-                const pai1 = populacao[Math.floor(Math.random() * 10)];
-                const pai2 = populacao[Math.floor(Math.random() * 10)];
-                
-                const filho = cruzar(pai1.grade, pai2.grade);
-                const filhoMutado = mutar(filho);
-                
-                novaPopulacao.push({ grade: filhoMutado, aulasRestantes: {} });
-            }
-            populacao = novaPopulacao;
-        }
-
-        populacao.sort((a, b) => b.fitness - a.fitness);
-        gradeHoraria = populacao[0].grade;
-        renderizarGrade();
-        renderizarAulasSobrantes(populacao[0].aulasRestantes);
-        console.log(`Melhor solução encontrada com fitness: ${populacao[0].fitness}`);
+    // Função auxiliar para pausar o script e permitir que o navegador "respire"
+    function pausar() {
+        return new Promise(resolve => setTimeout(resolve, 0));
     }
+
+    console.log('%c[IA] Iniciando o Algoritmo Genético...', 'color: green;');
+    statusMessage.textContent = 'Gerando grade horária... Por favor, aguarde.';
+    statusMessage.style.color = '#1a5cff';
+
+    // Geração da população inicial
+    for (let i = 0; i < TAMANHO_POPULACAO; i++) {
+        populacao.push(gerarGradeInicial());
+    }
+
+    for (let geracao = 0; geracao < NUM_GERACOES; geracao++) {
+        // Pausa para o navegador
+        await pausar();
+        
+        // Calcula a aptidão de cada grade
+        populacao.forEach(individuo => {
+            individuo.fitness = calcularFitness(individuo.grade);
+        });
+        
+        // Ordena a população pelas melhores notas
+        populacao.sort((a, b) => b.fitness - a.fitness);
+
+        // Atualiza a interface com o progresso
+        statusMessage.textContent = `Gerando grade... Geração ${geracao + 1}/${NUM_GERACOES}. Melhor fitness: ${populacao[0].fitness}`;
+        
+        // Se a melhor grade já é perfeita (todas as aulas alocadas), para o algoritmo
+        if (populacao[0].aulasRestantes.length === 0) {
+            console.log(`%c[IA] Solução perfeita encontrada na geração ${geracao + 1}!`, 'color: green;');
+            gradeHoraria = populacao[0].grade;
+            renderizarGrade();
+            renderizarAulasSobrantes(populacao[0].aulasRestantes);
+            statusMessage.textContent = 'Grade horária gerada com sucesso!';
+            statusMessage.style.color = 'green';
+            return;
+        }
+
+        // Geração da próxima população
+        const novaPopulacao = populacao.slice(0, POPULACAO_ELITE); // Mantém os melhores indivíduos
+        while (novaPopulacao.length < TAMANHO_POPULACAO) {
+            // Seleciona 2 pais da população atual (os melhores)
+            const pai1 = populacao[Math.floor(Math.random() * POPULACAO_ELITE)];
+            const pai2 = populacao[Math.floor(Math.random() * POPULACAO_ELITE)];
+            
+            // Crossover: Cria um novo indivíduo combinando os pais
+            const filho = cruzar(pai1.grade, pai2.grade);
+            
+            // Mutação: Aplica uma pequena mudança aleatória
+            const filhoMutado = mutar(filho);
+            
+            novaPopulacao.push({ grade: filhoMutado, aulasRestantes: {} });
+        }
+        populacao = novaPopulacao;
+    }
+
+    // Após todas as gerações, usa a melhor grade encontrada
+    populacao.sort((a, b) => b.fitness - a.fitness);
+    gradeHoraria = populacao[0].grade;
+    renderizarGrade();
+    renderizarAulasSobrantes(populacao[0].aulasRestantes);
+    console.log(`%c[IA] Melhor solução encontrada com fitness: ${populacao[0].fitness}`, 'color: #1a5cff;');
+    statusMessage.textContent = 'Geração de grade concluída.';
+    statusMessage.style.color = '#1a5cff';
+}
 
     function cruzar(grade1, grade2) {
         let novaGrade = {};
