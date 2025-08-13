@@ -8,14 +8,61 @@
 </head>
 <body>
     <nav class="main-nav">
-    <a href="index.html">Página Inicial</a>
-    <a href="turmas.html">Cadastro de Turmas</a>
-    <a href="professores_cargas.html">Professores e Cargas</a>
-    <a href="grade.html">Grade Horária</a>
-</nav>
+        <a href="index.html">Página Inicial</a>
+        <a href="turmas.html">Cadastro de Turmas</a>
+        <a href="professores_cargas.html">Professores e Cargas</a>
+        <a href="grade.html">Grade Horária</a>
+    </nav>
     <div class="container">
         <h1>Grade Horária Gerada</h1>
-        <div class="card full-width">...</div>
+
+        <div class="card full-width">
+            <h2>Configurações do Algoritmo</h2>
+            <form id="parametrosForm">
+                <label for="numGeracoes">Número de Gerações:</label>
+                <input type="number" id="numGeracoes" value="50" min="10" max="200" required>
+                <label for="tamanhoPopulacao">Tamanho da População:</label>
+                <input type="number" id="tamanhoPopulacao" value="10" min="5" max="50" required>
+                <label for="taxaMutacao">Taxa de Mutação (0.01 - 1):</label>
+                <input type="number" id="taxaMutacao" value="0.1" step="0.01" min="0.01" max="1" required>
+            </form>
+        </div>
+
+        <div class="card full-width">
+            <div class="grade-header">
+                <h2>Grade Horária</h2>
+                <button id="gerarGradeIABtn">Gerar Grade Horária</button>
+                <button id="novaGradeBtn">Nova Grade</button>
+            </div>
+            
+            <div class="progress-bar-container" style="display: none;">
+                <div class="progress-bar" style="width: 0;"></div>
+                <div class="progress-text">Gerando...</div>
+            </div>
+
+            <div class="grade-container">
+                <table id="gradeTable">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Segunda</th>
+                            <th>Terça</th>
+                            <th>Quarta</th>
+                            <th>Quinta</th>
+                            <th>Sexta</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card full-width">
+            <h2>Aulas Sobrantes</h2>
+            <p>Estas aulas não puderam ser alocadas na grade.</p>
+            <ul id="aulasSobrantesList"></ul>
+        </div>
     </div>
     <script src="main.js"></script>
 </body>
