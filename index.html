@@ -8,100 +8,14 @@
 </head>
 <body>
     <div class="container">
-        <h1>Gerador de Grade Horária</h1>
-
-        <div class="card">
-            <h2>Cadastro de Professores</h2>
-            <form id="professorForm">
-                <label for="nome">Nome do Professor:</label>
-                <input type="text" id="nome" required>
-                <label for="disciplinas">Disciplinas (separadas por vírgula):</label>
-                <input type="text" id="disciplinas" required>
-                <label for="nivelEnsino">Nível de Ensino:</label>
-                <select id="nivelEnsino" required>
-                    <option value="">Selecione...</option>
-                    <option value="Fundamental">Ensino Fundamental</option>
-                    <option value="Medio">Ensino Médio</option>
-                    <option value="Ambos">Ambos</option>
-                </select>
-                <div class="checkbox-group">
-                    <label>Disponibilidade:</label>
-                    <div class="checkboxes-wrapper">
-                        <label><input type="checkbox" name="disponibilidade" value="Segunda"> Segunda</label>
-                        <label><input type="checkbox" name="disponibilidade" value="Terça"> Terça</label>
-                        <label><input type="checkbox" name="disponibilidade" value="Quarta"> Quarta</label>
-                        <label><input type="checkbox" name="disponibilidade" value="Quinta"> Quinta</label>
-                        <label><input type="checkbox" name="disponibilidade" value="Sexta"> Sexta</label>
-                    </div>
-                </div>
-                <button type="submit">Adicionar Professor</button>
-            </form>
-            <h3>Professores Cadastrados</h3>
-            <ul id="professoresList"></ul>
-        </div>
-
-        <div class="card">
-            <h2>Cadastro de Carga Horária</h2>
-            <form id="cargaHorariaForm">
-                <label for="professorCarga">Professor:</label>
-                <select id="professorCarga" required>
-                    <option value="">Selecione o professor</option>
-                </select>
-                <label for="turmaCarga">Turma:</label>
-                <select id="turmaCarga" required>
-                    <option value="">Selecione a turma</option>
-                    <option value="6º ano">6º ano</option>
-                    <option value="7º ano">7º ano</option>
-                    <option value="8º ano">8º ano</option>
-                    <option value="9º ano">9º ano</option>
-                    <option value="1º EM">1º EM</option>
-                    <option value="2º EM">2º EM</option>
-                    <option value="3º EM">3º EM</option>
-                </select>
-                <label for="disciplinaCarga">Disciplina:</label>
-                <input type="text" id="disciplinaCarga" required>
-                <label for="aulasCarga">Número de Aulas por Semana:</label>
-                <input type="number" id="aulasCarga" min="1" required>
-                <label for="limiteDiario">Limite de Aulas por Dia:</label>
-                <input type="number" id="limiteDiario" min="1" required>
-                <div class="checkbox-group">
-                    <label>Aulas Geminadas (Consecutivas):</label>
-                    <input type="checkbox" id="aulaGeminada">
-                </div>
-                <button type="submit">Adicionar Carga</button>
-            </form>
-            <h3>Cargas Horárias Cadastradas</h3>
-            <ul id="cargaHorariaList"></ul>
-        </div>
-
-        <div class="card full-width">
-            <h2>Grade Horária Gerada</h2>
-            <div class="btn-group">
-                <div class="checkbox-group">
-                    <input type="checkbox" id="ativarAula6Fundamental">
-                    <label for="ativarAula6Fundamental">Ativar 6ª aula (Ensino Fundamental)</label>
-                </div>
-                <div class="checkbox-group">
-                    <input type="checkbox" id="ativarAula6Medio">
-                    <label for="ativarAula6Medio">Ativar 6ª aula (Ensino Médio)</label>
-                </div>
-                <button id="gerarGradeIABtn">Gerar Grade (IA)</button>
-                <button id="novaGradeBtn">Gerar Nova Grade</button>
-                <button id="trocarBtn">Ativar Troca de Professores</button>
-            </div>
-            <div id="statusMessage" style="margin-top: 10px; font-weight: bold; color: #1a5cff;"></div>
-            
-            <div id="progressBarContainer" style="width: 100%; background-color: #f3f3f3; border-radius: 5px; margin-top: 10px; display: none;">
-                <div id="progressBar" style="width: 0%; height: 25px; background-color: #4caf50; text-align: center; line-height: 25px; color: white; border-radius: 5px;">0%</div>
-            </div>
-
-            <table id="gradeTable">
-                </table>
-            
-            <div id="aulasSobrantes"></div>
-        </div>
+        <h1>Bem-vindo ao Gerador de Grade Horária</h1>
+        <nav>
+            <ul>
+                <li><a href="turmas.html">Cadastrar Turmas</a></li>
+                <li><a href="professores_cargas.html">Cadastrar Professores e Cargas Horárias</a></li>
+                <li><a href="grade.html">Gerar Grade Horária</a></li>
+            </ul>
+        </nav>
     </div>
-
-    <script src="main.js"></script>
 </body>
 </html>

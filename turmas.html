@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Turmas</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Cadastro de Turmas</h1>
+        <div class="card">
+            <h2>Adicionar Turma</h2>
+            <form id="turmaForm">
+                <label for="nomeTurma">Nome da Turma:</label>
+                <input type="text" id="nomeTurma" required>
+                <button type="submit">Adicionar Turma</button>
+            </form>
+            <h3>Turmas Cadastradas</h3>
+            <ul id="turmasList"></ul>
+        </div>
+    </div>
+    <script src="main.js"></script>
+</body>
+</html>
