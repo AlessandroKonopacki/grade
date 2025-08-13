@@ -1,6 +1,9 @@
 // worker.js
 self.onmessage = function(e) {
     const { professores, cargasHorarias, turmas, parametros, gradeAnterior } = e.data;
+    
+    // Mapeamento de dias da semana para a correção da disponibilidade
+    const diasSemana = ['nulo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta'];
 
     function criarIndividuo(professores, cargasHorarias, turmas) {
         const grade = {};
@@ -76,7 +79,10 @@ self.onmessage = function(e) {
                     professoresOcupados[professor][`${dia}-${hora}`] = true;
 
                     const professorData = professores.find(p => p.nome === professor);
-                    if (professorData && !professorData.disponibilidade.includes(horario.split('-')[0])) {
+                    
+                    // CORREÇÃO: Usando o array de mapeamento para checar a disponibilidade
+                    const diaDaSemana = diasSemana[dia];
+                    if (professorData && !professorData.disponibilidade.includes(diaDaSemana)) {
                          fitness -= 100;
                     }
 
@@ -130,20 +136,17 @@ self.onmessage = function(e) {
         return individuo;
     }
 
-    // Algoritmo Genético Principal
     let populacao = [];
     
-    // Lógica para incluir a grade anterior como o "super-pai"
     if (gradeAnterior) {
         const individuoAnterior = {
             grade: gradeAnterior,
-            aulasSobrantes: [], // Assumimos que o "super-pai" já tem todas as aulas alocadas
+            aulasSobrantes: [], 
         };
         individuoAnterior.fitness = avaliarIndividuo(individuoAnterior, professores);
         populacao.push(individuoAnterior);
     }
     
-    // Preenche o restante da população com indivíduos aleatórios
     while (populacao.length < parametros.tamanhoPopulacao) {
         const individuo = criarIndividuo(professores, cargasHorarias, turmas);
         individuo.fitness = avaliarIndividuo(individuo, professores);
