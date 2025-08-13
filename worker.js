@@ -1,246 +1,180 @@
 // worker.js
+self.onmessage = function(e) {
+    const { professores, cargasHorarias, turmas, parametros } = e.data;
 
-let professores;
-let cargasHorarias;
-let params;
-let diasDaSemana;
-let todasTurmas;
-let aulasPeriodoPadrao;
-const numGeracoes = 50;
-const tamanhoPopulacao = 10;
-const taxaMutacao = 0.1;
+    // Funções do Algoritmo Genético
+    function criarIndividuo(professores, cargasHorarias, turmas) {
+        // ... (código existente) ...
+        // Funções do Algoritmo Genético
+        function criarIndividuo(professores, cargasHorarias, turmas) {
+            const grade = {};
+            const aulasRestantes = [...cargasHorarias];
 
-// FUNÇÕES AUXILIARES
-function getAulasPeriodo(turma) {
-    if (['6º ano', '7º ano', '8º ano', '9º ano'].includes(turma) && params.ativarFundamental) {
-        return [2, 3, 4, 5, 6];
-    }
-    if (['1º EM', '2º EM', '3º EM'].includes(turma) && params.ativarMedio) {
-        return [2, 3, 4, 5, 6];
-    }
-    return aulasPeriodoPadrao;
-}
-
-function shuffleArray(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-    }
-}
-
-function temAulaConsecutiva(grade, dia, aula, turma, professorNome) {
-    const aulasPeriodoFinal = getAulasPeriodo(turma);
-    const aulaAnterior = aulasPeriodoFinal.find(a => a === aula - 1);
-    const aulaPosterior = aulasPeriodoFinal.find(a => a === aula + 1);
-
-    if (aulaAnterior && grade[dia]?.[aulaAnterior]?.[turma]?.startsWith(professorNome)) {
-        return true;
-    }
-    if (aulaPosterior && grade[dia]?.[aulaPosterior]?.[turma]?.startsWith(professorNome)) {
-        return true;
-    }
-    return false;
-}
-
-function estaEmOutraTurma(grade, dia, aula, professorNome, turmaAtual) {
-    return todasTurmas.some(turma =>
-        turma !== turmaAtual &&
-        grade[dia]?.[aula]?.[turma]?.startsWith(professorNome)
-    );
-}
-
-// ALGORITMO GENÉTICO
-function gerarIndividuo() {
-    let grade = {};
-    const aulasParaDistribuir = JSON.parse(JSON.stringify(cargasHorarias));
-    const aulasPorDiaProfessor = {};
-    let aulasAlocadas = 0;
-
-    shuffleArray(aulasParaDistribuir);
-
-    diasDaSemana.forEach(dia => {
-        grade[dia] = {};
-        todasTurmas.forEach(turma => {
-            getAulasPeriodo(turma).forEach(aula => {
-                grade[dia][aula] = {};
-            });
-        });
-    });
-
-    aulasParaDistribuir.forEach(carga => {
-        let aulasRestantes = carga.aulas;
-        const professor = professores.find(p => p.nome === carga.professorNome);
-        
-        while (aulasRestantes > 0) {
-            let dia = diasDaSemana[Math.floor(Math.random() * diasDaSemana.length)];
-            let turma = carga.turma;
-            let aulasPeriodo = getAulasPeriodo(turma);
-            shuffleArray(aulasPeriodo);
-            let aula = aulasPeriodo[0];
-
-            if (!aulasPorDiaProfessor[professor.nome]) aulasPorDiaProfessor[professor.nome] = {};
-            if (!aulasPorDiaProfessor[professor.nome][dia]) aulasPorDiaProfessor[professor.nome][dia] = 0;
-
-            const podeAlocar = professor &&
-                                professor.disponibilidade.includes(dia) &&
-                                !estaEmOutraTurma(grade, dia, aula, professor.nome, turma) &&
-                                !grade[dia][aula][turma] &&
-                                aulasPorDiaProfessor[professor.nome][dia] < carga.limiteDiario &&
-                                (carga.aulaGeminada || !temAulaConsecutiva(grade, dia, aula, turma, professor.nome));
-            
-            if (podeAlocar) {
-                grade[dia][aula][turma] = `${professor.nome} (${carga.disciplina})`;
-                aulasPorDiaProfessor[professor.nome][dia]++;
-                aulasRestantes--;
-                aulasAlocadas++;
-            }
-        }
-        carga.aulas = aulasRestantes;
-    });
-
-    return { grade, aulasRestantes: aulasParaDistribuir, aulasAlocadas };
-}
-
-function calcularFitness(individuo) {
-    let score = 0;
-    let aulasAlocadas = individuo.aulasAlocadas;
-    let conflitos = 0;
-
-    diasDaSemana.forEach(dia => {
-        const aulasPossiveis = [2, 3, 4, 5, 6];
-        aulasPossiveis.forEach(aula => {
-            const professoresPorPeriodo = [];
-            todasTurmas.forEach(turma => {
-                const professorDisciplina = individuo.grade[dia]?.[aula]?.[turma];
-                if (professorDisciplina) {
-                    const professorNome = professorDisciplina.split(' (')[0];
-                    professoresPorPeriodo.push(professorNome);
+            // Inicializa a grade com horários vazios
+            turmas.forEach(turma => {
+                grade[turma.nome] = {};
+                for (let dia = 1; dia <= 5; dia++) {
+                    for (let hora = 1; hora <= 6; hora++) {
+                        grade[turma.nome][`${dia}-${hora}`] = null;
+                    }
                 }
             });
-            const uniqueProfessores = new Set(professoresPorPeriodo);
-            conflitos += professoresPorPeriodo.length - uniqueProfessores.size;
-        });
-    });
 
-    // Penalidade por conflitos
-    score -= conflitos * 1000;
+            // Preenche a grade com aulas
+            let tentativas = 0;
+            while (aulasRestantes.length > 0 && tentativas < 1000) {
+                const aula = aulasRestantes.shift();
+                let alocada = false;
 
-    // Pontuação por aulas alocadas
-    score += aulasAlocadas;
-    
-    // Bônus por aulas geminadas (aqui não está implementado, mas é onde a lógica entraria)
+                // Tenta alocar a aula em horários aleatórios
+                for (let i = 0; i < 50; i++) {
+                    const turmaNome = aula.turma;
+                    const dia = Math.floor(Math.random() * 5) + 1;
+                    const hora = Math.floor(Math.random() * 6) + 1;
 
-    return score;
-}
+                    // Verifica se o horário está disponível
+                    if (!grade[turmaNome][`${dia}-${hora}`]) {
+                        // Verifica o limite de aulas por dia para a disciplina
+                        const aulasNoDia = Object.values(grade[turmaNome]).filter(
+                            a => a && a.disciplina === aula.disciplina && a.dia === dia
+                        ).length;
 
-function crossover(pai1, pai2) {
-    let filho = JSON.parse(JSON.stringify(pai1));
-    const crossoverPoint = Math.floor(Math.random() * diasDaSemana.length);
+                        if (aulasNoDia < aula.limiteAulas) {
+                            // Aloca a aula e marca como alocada
+                            grade[turmaNome][`${dia}-${hora}`] = {
+                                professor: aula.professorNome,
+                                disciplina: aula.disciplina,
+                                dia,
+                                hora
+                            };
+                            alocada = true;
+                            break;
+                        }
+                    }
+                }
 
-    for (let i = 0; i < crossoverPoint; i++) {
-        const dia = diasDaSemana[i];
-        filho.grade[dia] = pai2.grade[dia];
-    }
-    return filho;
-}
+                if (!alocada) {
+                    aulasRestantes.push(aula);
+                }
+                tentativas++;
+            }
 
-function mutarIndividuo(individuo) {
-    let grade = individuo.grade;
-    const dia = diasDaSemana[Math.floor(Math.random() * diasDaSemana.length)];
-    const turma = todasTurmas[Math.floor(Math.random() * todasTurmas.length)];
-    const aulasPeriodo = getAulasPeriodo(turma);
-    const aula = aulasPeriodo[Math.floor(Math.random() * aulasPeriodo.length)];
-
-    let celulaOriginal = grade[dia]?.[aula]?.[turma];
-
-    if (celulaOriginal) {
-        // Tenta mover a aula para outro slot
-        const novoDia = diasDaSemana[Math.floor(Math.random() * diasDaSemana.length)];
-        const novaAula = aulasPeriodo[Math.floor(Math.random() * aulasPeriodo.length)];
-        
-        // Verifica se a nova posição é válida
-        const professorNome = celulaOriginal.split(' (')[0];
-        const professorObj = professores.find(p => p.nome === professorNome);
-        
-        const podeMover = professorObj.disponibilidade.includes(novoDia) &&
-                         !grade[novoDia]?.[novaAula]?.[turma] &&
-                         !estaEmOutraTurma(grade, novoDia, novaAula, professorNome, turma);
-
-        if (podeMover) {
-            grade[novoDia][novaAula][turma] = celulaOriginal;
-            grade[dia][aula][turma] = undefined;
+            return {
+                grade,
+                aulasSobrantes: aulasRestantes
+            };
         }
     }
-    individuo.grade = grade;
-    return individuo;
-}
 
-function algoritmoGenetico() {
+    function avaliarIndividuo(individuo, professores) {
+        let fitness = 1000;
+        const grade = individuo.grade;
+
+        // Penalidade para aulas não alocadas
+        fitness -= individuo.aulasSobrantes.length * 100;
+
+        // Penalidade por conflitos
+        const professoresOcupados = {};
+        for (const turma in grade) {
+            for (const horario in grade[turma]) {
+                const aula = grade[turma][horario];
+                if (aula) {
+                    const { professor, dia, hora } = aula;
+                    if (!professoresOcupados[professor]) {
+                        professoresOcupados[professor] = {};
+                    }
+                    if (professoresOcupados[professor][`${dia}-${hora}`]) {
+                        fitness -= 100; // Conflito de professor
+                    }
+                    professoresOcupados[professor][`${dia}-${hora}`] = true;
+
+                    // Penalidade se professor não tem disponibilidade
+                    const professorData = professores.find(p => p.nome === professor);
+                    if (professorData && !professorData.disponibilidade.includes(horario.split('-')[0])) {
+                         fitness -= 100;
+                    }
+
+                    // Bônus para aulas geminadas (adicionado)
+                    const [aulaDia, aulaHora] = horario.split('-').map(Number);
+                    if (aulaHora < 6) {
+                        const proximaAula = grade[turma][`${aulaDia}-${aulaHora + 1}`];
+                        if (proximaAula && proximaAula.disciplina === aula.disciplina) {
+                            fitness += 20; // Recompensa por aula geminada
+                        }
+                    }
+                }
+            }
+        }
+        return fitness;
+    }
+
+    function selecao(populacao) {
+        // Torneio: selecione 2, pegue o melhor
+        const competidores = [];
+        for (let i = 0; i < 2; i++) {
+            const indiceAleatorio = Math.floor(Math.random() * populacao.length);
+            competidores.push(populacao[indiceAleatorio]);
+        }
+        return competidores[0].fitness > competidores[1].fitness ? competidores[0] : competidores[1];
+    }
+
+    function cruzamento(pai1, pai2) {
+        const filho = JSON.parse(JSON.stringify(pai1));
+        const pontoCorte = Math.floor(Math.random() * Object.keys(pai1.grade).length);
+        const chavesTurmas = Object.keys(pai1.grade);
+
+        for (let i = pontoCorte; i < chavesTurmas.length; i++) {
+            const turma = chavesTurmas[i];
+            filho.grade[turma] = pai2.grade[turma];
+        }
+        return filho;
+    }
+
+    // A função de mutação foi corrigida
+    function mutacao(individuo) {
+        if (Math.random() < parametros.taxaMutacao) {
+            const turmas = Object.keys(individuo.grade);
+            const turma = turmas[Math.floor(Math.random() * turmas.length)];
+            
+            const horarios = Object.keys(individuo.grade[turma]);
+            const horario1 = horarios[Math.floor(Math.random() * horarios.length)];
+            const horario2 = horarios[Math.floor(Math.random() * horarios.length)];
+
+            const temp = individuo.grade[turma][horario1];
+            individuo.grade[turma][horario1] = individuo.grade[turma][horario2];
+            individuo.grade[turma][horario2] = temp;
+        }
+        return individuo;
+    }
+
+    // Algoritmo Genético Principal
     let populacao = [];
-    for (let i = 0; i < tamanhoPopulacao; i++) {
-        const individuo = gerarIndividuo();
-        individuo.fitness = calcularFitness(individuo);
+    for (let i = 0; i < parametros.tamanhoPopulacao; i++) {
+        const individuo = criarIndividuo(professores, cargasHorarias, turmas);
+        individuo.fitness = avaliarIndividuo(individuo, professores);
         populacao.push(individuo);
     }
-    
-    let melhorIndividuo = populacao.reduce((melhor, atual) => (atual.fitness > melhor.fitness) ? atual : melhor);
 
-    for (let geracao = 0; geracao < numGeracoes; geracao++) {
-        populacao.sort((a, b) => b.fitness - a.fitness);
-
-        let novaPopulacao = populacao.slice(0, 10);
-
-        while (novaPopulacao.length < tamanhoPopulacao) {
-            const pai1 = populacao[Math.floor(Math.random() * 50)];
-            const pai2 = populacao[Math.floor(Math.random() * 50)];
-
-            let filho = crossover(pai1, pai2);
-            if (Math.random() < taxaMutacao) {
-                filho = mutarIndividuo(filho);
-            }
-            filho.fitness = calcularFitness(filho);
+    for (let geracao = 0; geracao < parametros.numGeracoes; geracao++) {
+        const novaPopulacao = [];
+        for (let i = 0; i < parametros.tamanhoPopulacao; i++) {
+            const pai1 = selecao(populacao);
+            const pai2 = selecao(populacao);
+            const filho = cruzamento(pai1, pai2);
+            mutacao(filho);
+            filho.fitness = avaliarIndividuo(filho, professores);
             novaPopulacao.push(filho);
         }
         populacao = novaPopulacao;
 
-        const melhorDaGeracao = populacao[0];
-        if (melhorDaGeracao.fitness > melhorIndividuo.fitness) {
-            melhorIndividuo = melhorDaGeracao;
-        }
-
-        if (geracao % 100 === 0) {
-            self.postMessage({
-                type: 'progress',
-                geracao: geracao,
-                numGeracoes: numGeracoes,
-                melhorFitness: melhorIndividuo.fitness
-            });
-        }
+        // Relatar progresso
+        self.postMessage({ status: 'progresso', progresso: (geracao / parametros.numGeracoes) * 100 });
     }
-    
-    // Retorna a melhor grade encontrada
-    const aulasRestantes = melhorIndividuo.aulasRestantes.filter(a => a.aulas > 0);
-    self.postMessage({
-        type: 'concluido',
-        melhorGrade: melhorIndividuo.grade,
-        aulasRestantes: aulasRestantes
+
+    // Encontra o melhor indivíduo da última geração
+    let melhorIndividuo = populacao.reduce((melhor, atual) => {
+        return atual.fitness > melhor.fitness ? atual : melhor;
     });
-}
 
-
-self.onmessage = (e) => {
-    if (e.data.tipo === 'iniciar') {
-        const data = e.data.data;
-        professores = data.professores;
-        cargasHorarias = data.cargasHorarias;
-        params = data.params;
-
-        diasDaSemana = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta'];
-        const turmasFundamental = ['6º ano', '7º ano', '8º ano', '9º ano'];
-        const turmasMedio = ['1º EM', '2º EM', '3º EM'];
-        todasTurmas = [...turmasFundamental, ...turmasMedio];
-        aulasPeriodoPadrao = [2, 3, 4, 5];
-
-        algoritmoGenetico();
-    }
+    self.postMessage({ status: 'completo', grade: melhorIndividuo.grade, aulasSobrantes: melhorIndividuo.aulasSobrantes });
 };
