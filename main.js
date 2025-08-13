@@ -137,7 +137,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const nivelElement = document.querySelector('input[name="nivel"]:checked');
             const disponibilidade = Array.from(document.querySelectorAll('#disponibilidade input:checked')).map(cb => cb.value);
 
-            // Adiciona validação para garantir que um nível seja selecionado
+            // Adiciona validação para garantir que um nível seja selecionado e que os campos não estejam vazios
             if (nomeProfessor && disciplinas && nivelElement) {
                 const nivel = nivelElement.value;
                 professores.push({ nome: nomeProfessor, disciplinas, nivel, disponibilidade });
@@ -159,7 +159,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // Lógica de adicionar carga horária (re-implementada)
+        // Lógica de adicionar carga horária
         cargaHorariaForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const professorNome = professorCargaSelect.value;
