@@ -381,44 +381,72 @@ document.addEventListener('DOMContentLoaded', () => {
         const cell2Content = gradeHoraria[cell2Data.dia]?.[cell2Data.aula]?.[cell2Data.turma];
         
         // Se uma das células está vazia, a troca é sempre válida (movimentação)
-        if (!cell1Content || !cell2Content) {
-            return { isValid: true, message: 'Troca com célula vazia é sempre válida.' };
+        if (!cell1Content && !cell2Content) {
+            return { isValid: false, message: 'Não é possível trocar duas células vazias.' };
+        }
+        
+        let prof1Nome, disc1, prof2Nome, disc2;
+        if(cell1Content) {
+            [prof1Nome, disc1] = cell1Content.split(' (').map(s => s.replace(')', ''));
+        }
+        if(cell2Content) {
+            [prof2Nome, disc2] = cell2Content.split(' (').map(s => s.replace(')', ''));
         }
 
-        const [prof1Nome, disc1] = cell1Content.split(' (').map(s => s.replace(')', ''));
-        const [prof2Nome, disc2] = cell2Content.split(' (').map(s => s.replace(')', ''));
+        // Validação da primeira célula para o lugar da segunda
+        if(cell1Content) {
+            const prof1 = professores.find(p => p.nome === prof1Nome);
+            if (!prof1.disponibilidade.includes(cell2Data.dia)) {
+                return { isValid: false, message: `O professor ${prof1Nome} não está disponível na ${cell2Data.dia}.` };
+            }
+            if (cell2Content) { // Se a célula de destino não está vazia, verifica a disciplina
+                const cargaExistente = cargasHorarias.find(c =>
+                    c.professorNome === prof1Nome &&
+                    c.disciplina.toLowerCase() === disc1.toLowerCase() &&
+                    c.turma === cell2Data.turma
+                );
+                if (!cargaExistente) {
+                    return { isValid: false, message: `A disciplina ${disc1} não está prevista para a turma ${cell2Data.turma}.` };
+                }
+            }
+        }
+        
+        // Validação da segunda célula para o lugar da primeira
+        if(cell2Content) {
+            const prof2 = professores.find(p => p.nome === prof2Nome);
+            if (!prof2.disponibilidade.includes(cell1Data.dia)) {
+                return { isValid: false, message: `O professor ${prof2Nome} não está disponível na ${cell1Data.dia}.` };
+            }
+            if (cell1Content) { // Se a célula de destino não está vazia, verifica a disciplina
+                const cargaExistente = cargasHorarias.find(c =>
+                    c.professorNome === prof2Nome &&
+                    c.disciplina.toLowerCase() === disc2.toLowerCase() &&
+                    c.turma === cell1Data.turma
+                );
+                if (!cargaExistente) {
+                    return { isValid: false, message: `A disciplina ${disc2} não está prevista para a turma ${cell1Data.turma}.` };
+                }
+            }
+        }
 
-        const prof1 = professores.find(p => p.nome === prof1Nome);
-        const prof2 = professores.find(p => p.nome === prof2Nome);
+        // A checagem de nível de ensino e limite diário já são cobertas pela checagem da carga horária,
+        // mas podemos mantê-las como uma camada extra de segurança.
         
-        // Checagem de Conflitos e Disponibilidade
-        if (!prof1.disponibilidade.includes(cell2Data.dia)) {
-            return { isValid: false, message: `O professor ${prof1Nome} não está disponível na ${cell2Data.dia}.` };
-        }
-        if (!prof2.disponibilidade.includes(cell1Data.dia)) {
-            return { isValid: false, message: `O professor ${prof2Nome} não está disponível na ${cell1Data.dia}.` };
-        }
-        
-        // Checagem de Qualificação e Nível
-        if (!prof1.disciplinas.includes(disc2.toLowerCase())) {
-            return { isValid: false, message: `O professor ${prof1Nome} não é qualificado para a disciplina ${disc2}.` };
-        }
-        if (!prof2.disciplinas.includes(disc1.toLowerCase())) {
-            return { isValid: false, message: `O professor ${prof2Nome} não é qualificado para a disciplina ${disc1}.` };
-        }
-        
-        // Nível de Ensino
         const nivel1Turma = turmasFundamental.includes(cell1Data.turma) ? 'Fundamental' : 'Medio';
         const nivel2Turma = turmasFundamental.includes(cell2Data.turma) ? 'Fundamental' : 'Medio';
         
-        const nivel1Prof = prof1.nivelEnsino;
-        const nivel2Prof = prof2.nivelEnsino;
-        
-        if (nivel1Prof !== 'Ambos' && nivel1Prof !== nivel2Turma) {
-            return { isValid: false, message: `O professor ${prof1Nome} não pode lecionar para o ${nivel2Turma}.` };
+        if (cell1Content) {
+            const prof1 = professores.find(p => p.nome === prof1Nome);
+            if (prof1.nivelEnsino !== 'Ambos' && prof1.nivelEnsino !== nivel2Turma) {
+                return { isValid: false, message: `O professor ${prof1Nome} não pode lecionar para o ${nivel2Turma}.` };
+            }
         }
-        if (nivel2Prof !== 'Ambos' && nivel2Prof !== nivel1Turma) {
-            return { isValid: false, message: `O professor ${prof2Nome} não pode lecionar para o ${nivel1Turma}.` };
+
+        if (cell2Content) {
+            const prof2 = professores.find(p => p.nome === prof2Nome);
+            if (prof2.nivelEnsino !== 'Ambos' && prof2.nivelEnsino !== nivel1Turma) {
+                return { isValid: false, message: `O professor ${prof2Nome} não pode lecionar para o ${nivel1Turma}.` };
+            }
         }
 
         return { isValid: true, message: 'Troca válida.' };
@@ -535,8 +563,13 @@ document.addEventListener('DOMContentLoaded', () => {
                 const cell1Content = gradeHoraria[cell1Data.dia]?.[cell1Data.aula]?.[cell1Data.turma];
                 const cell2Content = gradeHoraria[cell2Data.dia]?.[cell2Data.aula]?.[cell2Data.turma];
             
-                gradeHoraria[cell1Data.dia][cell1Data.aula][cell1Data.turma] = cell2Content;
-                gradeHoraria[cell2Data.dia][cell2Data.aula][cell2Data.turma] = cell1Content;
+                // Realiza a troca no objeto de dados
+                if (gradeHoraria[cell1Data.dia][cell1Data.aula]) {
+                    gradeHoraria[cell1Data.dia][cell1Data.aula][cell1Data.turma] = cell2Content;
+                }
+                if (gradeHoraria[cell2Data.dia][cell2Data.aula]) {
+                    gradeHoraria[cell2Data.dia][cell2Data.aula][cell2Data.turma] = cell1Content;
+                }
                 
                 renderizarGrade();
                 const aulasRestantesFinal = recalcularAulasSobrantes(gradeHoraria);
