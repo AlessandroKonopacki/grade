@@ -129,19 +129,23 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         };
 
-        // Lógica de adicionar professor (re-implementada)
+        // Lógica de adicionar professor (CORRIGIDA)
         professorForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const nomeProfessor = document.getElementById('nomeProfessor').value.trim();
             const disciplinas = document.getElementById('disciplinas').value.trim();
-            const nivel = document.querySelector('input[name="nivel"]:checked').value;
+            const nivelElement = document.querySelector('input[name="nivel"]:checked');
             const disponibilidade = Array.from(document.querySelectorAll('#disponibilidade input:checked')).map(cb => cb.value);
 
-            if (nomeProfessor && disciplinas) {
+            // Adiciona validação para garantir que um nível seja selecionado
+            if (nomeProfessor && disciplinas && nivelElement) {
+                const nivel = nivelElement.value;
                 professores.push({ nome: nomeProfessor, disciplinas, nivel, disponibilidade });
                 professorForm.reset();
                 renderizarProfessores();
                 popularSelects();
+            } else {
+                alert('Por favor, preencha todos os campos e selecione o nível de ensino.');
             }
         });
 
@@ -211,8 +215,6 @@ document.addEventListener('DOMContentLoaded', () => {
         let gradeHoraria = []; 
         let aulasSobrantes = [];
         
-        // As funções de renderização da grade, troca de professores, etc.
-        // continuam as mesmas, mas agora só são chamadas nesta página.
         const renderizarGrade = (grade) => {
             // Lógica para renderizar a tabela
         };
