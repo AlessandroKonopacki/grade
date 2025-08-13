@@ -47,7 +47,7 @@ function temAulaConsecutiva(grade, dia, aula, turma, professorNome, ativarFundam
 
 function gerarGradeInicial(ativarFundamental, ativarMedio) {
     let grade = {};
-    const aulasParaDistribuir = [...cargasHorarias];
+    const aulasParaDistribuir = JSON.parse(JSON.stringify(cargasHorarias)); // Clonar para não alterar o original
     const aulasPorDiaProfessor = {};
 
     shuffleArray(aulasParaDistribuir);
@@ -189,8 +189,14 @@ function mutar(grade, ativarFundamental, ativarMedio) {
 }
 
 function executarAlgoritmoGenetico(params) {
-    const { NUM_GERACOES, TAMANHO_POPULACAO, POPULACAO_ELITE, ativarFundamental, ativarMedio } = params;
+    const { ativarFundamental, ativarMedio } = params;
     
+    // --- Novos Parâmetros Otimizados para Velocidade ---
+    const NUM_GERACOES = 100; // Reduzimos de 200 para 100
+    const TAMANHO_POPULACAO = 30; // Reduzimos de 50 para 30
+    const POPULACAO_ELITE = 5; // Reduzimos de 10 para 5
+    // --- Fim dos Novos Parâmetros ---
+
     let populacao = [];
     
     // Geração da população inicial
@@ -211,7 +217,8 @@ function executarAlgoritmoGenetico(params) {
         self.postMessage({
             type: 'progress',
             geracao: geracao + 1,
-            melhorFitness: populacao[0].fitness
+            melhorFitness: populacao[0].fitness,
+            numGeracoes: NUM_GERACOES // Envia o número total de gerações
         });
         
         // Se a melhor grade já é perfeita (todas as aulas alocadas), para o algoritmo
