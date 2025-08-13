@@ -96,7 +96,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     
         diasDaSemana.forEach(dia => {
-            getAulasPeriodo('6º ano').forEach(aula => { // Assume-se que o número de aulas é consistente entre as turmas
+            const aulasPossiveis = [2, 3, 4, 5, 6];
+            aulasPossiveis.forEach(aula => {
                 todasTurmas.forEach(turma => {
                     const professorDisciplina = grade[dia]?.[aula]?.[turma];
                     if (professorDisciplina) {
@@ -334,7 +335,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const tbody = document.createElement('tbody');
         
         diasDaSemana.forEach(dia => {
-            const aulasPossiveis = getAulasPeriodo(turmasFundamental[0]);
+            const aulasPossiveis = getAulasPeriodo('6º ano');
             
             aulasPossiveis.forEach((aula, index) => {
                 const tr = document.createElement('tr');
@@ -373,6 +374,54 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         
         gradeTable.appendChild(tbody);
+    }
+
+    function podeTrocar(cell1Data, cell2Data) {
+        const cell1Content = gradeHoraria[cell1Data.dia]?.[cell1Data.aula]?.[cell1Data.turma];
+        const cell2Content = gradeHoraria[cell2Data.dia]?.[cell2Data.aula]?.[cell2Data.turma];
+        
+        // Se uma das células está vazia, a troca é sempre válida (movimentação)
+        if (!cell1Content || !cell2Content) {
+            return { isValid: true, message: 'Troca com célula vazia é sempre válida.' };
+        }
+
+        const [prof1Nome, disc1] = cell1Content.split(' (').map(s => s.replace(')', ''));
+        const [prof2Nome, disc2] = cell2Content.split(' (').map(s => s.replace(')', ''));
+
+        const prof1 = professores.find(p => p.nome === prof1Nome);
+        const prof2 = professores.find(p => p.nome === prof2Nome);
+        
+        // Checagem de Conflitos e Disponibilidade
+        if (!prof1.disponibilidade.includes(cell2Data.dia)) {
+            return { isValid: false, message: `O professor ${prof1Nome} não está disponível na ${cell2Data.dia}.` };
+        }
+        if (!prof2.disponibilidade.includes(cell1Data.dia)) {
+            return { isValid: false, message: `O professor ${prof2Nome} não está disponível na ${cell1Data.dia}.` };
+        }
+        
+        // Checagem de Qualificação e Nível
+        if (!prof1.disciplinas.includes(disc2.toLowerCase())) {
+            return { isValid: false, message: `O professor ${prof1Nome} não é qualificado para a disciplina ${disc2}.` };
+        }
+        if (!prof2.disciplinas.includes(disc1.toLowerCase())) {
+            return { isValid: false, message: `O professor ${prof2Nome} não é qualificado para a disciplina ${disc1}.` };
+        }
+        
+        // Nível de Ensino
+        const nivel1Turma = turmasFundamental.includes(cell1Data.turma) ? 'Fundamental' : 'Medio';
+        const nivel2Turma = turmasFundamental.includes(cell2Data.turma) ? 'Fundamental' : 'Medio';
+        
+        const nivel1Prof = prof1.nivelEnsino;
+        const nivel2Prof = prof2.nivelEnsino;
+        
+        if (nivel1Prof !== 'Ambos' && nivel1Prof !== nivel2Turma) {
+            return { isValid: false, message: `O professor ${prof1Nome} não pode lecionar para o ${nivel2Turma}.` };
+        }
+        if (nivel2Prof !== 'Ambos' && nivel2Prof !== nivel1Turma) {
+            return { isValid: false, message: `O professor ${prof2Nome} não pode lecionar para o ${nivel1Turma}.` };
+        }
+
+        return { isValid: true, message: 'Troca válida.' };
     }
     
     // --- Event Listeners ---
@@ -458,6 +507,9 @@ document.addEventListener('DOMContentLoaded', () => {
             trocarBtn.textContent = 'Ativar Troca de Professores';
             trocarBtn.style.backgroundColor = '#007bff';
             selectedCell = null;
+            gradeTable.querySelectorAll('.grade-cell').forEach(cell => {
+                cell.style.border = '';
+            });
         }
     });
     
@@ -471,21 +523,30 @@ document.addEventListener('DOMContentLoaded', () => {
             selectedCell = cell;
             selectedCell.style.border = '2px solid blue';
         } else if (selectedCell === cell) {
-            selectedCell.style.border = '1px solid #ccc';
+            selectedCell.style.border = '';
             selectedCell = null;
         } else {
             const cell1Data = selectedCell.dataset;
             const cell2Data = cell.dataset;
             
-            const cell1Content = gradeHoraria[cell1Data.dia]?.[cell1Data.aula]?.[cell1Data.turma];
-            const cell2Content = gradeHoraria[cell2Data.dia]?.[cell2Data.aula]?.[cell2Data.turma];
+            const validacao = podeTrocar(cell1Data, cell2Data);
             
-            // Troca o conteúdo na gradeHoraria
-            gradeHoraria[cell1Data.dia][cell1Data.aula][cell1Data.turma] = cell2Content;
-            gradeHoraria[cell2Data.dia][cell2Data.aula][cell2Data.turma] = cell1Content;
+            if (validacao.isValid) {
+                const cell1Content = gradeHoraria[cell1Data.dia]?.[cell1Data.aula]?.[cell1Data.turma];
+                const cell2Content = gradeHoraria[cell2Data.dia]?.[cell2Data.aula]?.[cell2Data.turma];
             
-            // Limpa as células selecionadas e re-renderiza
-            renderizarGrade();
+                gradeHoraria[cell1Data.dia][cell1Data.aula][cell1Data.turma] = cell2Content;
+                gradeHoraria[cell2Data.dia][cell2Data.aula][cell2Data.turma] = cell1Content;
+                
+                renderizarGrade();
+                const aulasRestantesFinal = recalcularAulasSobrantes(gradeHoraria);
+                renderizarAulasSobrantes(aulasRestantesFinal);
+
+            } else {
+                alert(`Troca inválida: ${validacao.message}`);
+            }
+
+            selectedCell.style.border = '';
             selectedCell = null;
             swapMode = false;
             trocarBtn.textContent = 'Ativar Troca de Professores';
