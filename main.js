@@ -268,18 +268,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const worker = new Worker('worker.js');
 
-            const gradeAnterior = carregarDados('gradeAnterior');
-            if (gradeAnterior) {
-                const usarGradeAnterior = confirm('Encontrada uma grade anterior. Deseja usar ela como base para a nova grade?');
-                if (usarGradeAnterior) {
-                    worker.postMessage({ professores, cargasHorarias, turmas, parametros, gradeAnterior });
-                } else {
-                    worker.postMessage({ professores, cargasHorarias, turmas, parametros });
-                }
-            } else {
-                worker.postMessage({ professores, cargasHorarias, turmas, parametros });
-            }
-
+         worker.postMessage({ professores, cargasHorarias, turmas, parametros });
 
             worker.onmessage = (e) => {
                 if (e.data.status === 'progresso') {
