@@ -10,7 +10,6 @@ self.onmessage = function(e) {
     function criarIndividuo(professores, cargasHorarias, turmas) {
         const grade = {};
         const aulasRestantes = [];
-        const ocupacaoProfessor = {};
 
         turmas.forEach(turma => {
             grade[turma.nome] = {};
@@ -21,98 +20,124 @@ self.onmessage = function(e) {
             }
         });
 
-        const aulasParaAlocar = [...cargasHorarias];
-        const aulasParaAlocarPorProfessor = {};
+        // Duplica as aulas para ter um item para cada aula individual
+        const aulasIndividuais = [];
+        cargasHorarias.forEach(aula => {
+            for (let i = 0; i < aula.aulasPorSemana; i++) {
+                aulasIndividuais.push({ ...aula, idUnico: `${aula.professorNome}-${aula.disciplina}-${aula.turma}-${i}` });
+            }
+        });
+
+        const aulasParaAlocar = [...aulasIndividuais].sort(() => Math.random() - 0.5);
+        const maxTentativasAula = 50;
         
-        professores.forEach(p => aulasParaAlocarPorProfessor[p.nome] = []);
-        aulasParaAlocar.forEach(aula => aulasParaAlocarPorProfessor[aula.professorNome].push(aula));
-        
-        const professoresAleatorios = [...professores].sort(() => Math.random() - 0.5);
+        while (aulasParaAlocar.length > 0) {
+            const aula = aulasParaAlocar.shift();
+            const professorNome = aula.professorNome;
+            const professor = professores.find(p => p.nome === professorNome);
+            
+            if (!professor) {
+                aulasRestantes.push(aula);
+                continue;
+            }
 
-        for (const professor of professoresAleatorios) {
-            const aulasDoProfessor = aulasParaAlocarPorProfessor[professor.nome];
+            const diasDisponiveis = professor.disponibilidade.map(diaStr => diasSemana.indexOf(diaStr)).filter(d => d > 0);
+            
+            if (diasDisponiveis.length === 0) {
+                 aulasRestantes.push(aula);
+                 continue;
+            }
 
-            for (const aula of aulasDoProfessor) {
-                let alocadaComSucesso = false;
-                const vagasDisponiveis = [];
+            let alocadaComSucesso = false;
+            let tentativas = 0;
 
-                const diasDisponiveis = professor.disponibilidade.map(diaStr => diasSemana.indexOf(diaStr));
-                
-                for (const dia of diasDisponiveis) {
-                    if (dia === 0) continue; // Pula o dia 'nulo'
+            while (!alocadaComSucesso && tentativas < maxTentativasAula) {
+                const dia = diasDisponiveis[Math.floor(Math.random() * diasDisponiveis.length)];
+                const hora = Math.floor(Math.random() * 6) + 1; // 1-6
+                const turmaNome = aula.turma;
 
-                    for (let hora = 1; hora <= 6; hora++) {
-                        const turmaNome = aula.turma;
-
-                        // Verifica se o slot está disponível na grade
-                        if (grade[turmaNome][`${dia}-${hora}`] !== null) continue;
-                        
-                        // Verifica conflito de professor
-                        let conflitoProfessor = false;
-                        for (const t in grade) {
-                            if (grade[t][`${dia}-${hora}`] && grade[t][`${dia}-${hora}`].professor === professor.nome) {
-                                conflitoProfessor = true;
-                                break;
-                            }
-                        }
-                        if (conflitoProfessor) continue;
-                        
-                        // Verifica aulas geminadas
-                        if (aula.aulasGeminadas) {
-                            if (hora === 6) continue;
-                            const proximaAula = grade[turmaNome][`${dia}-${hora + 1}`];
-                            if (proximaAula !== null) continue;
-                        }
-
-                        // Verifica limite de aulas por dia (turma)
-                        const aulasNoDiaTurma = Object.values(grade[turmaNome]).filter(
-                            a => a && a.disciplina === aula.disciplina && a.dia === dia
-                        ).length;
-                        if (aulasNoDiaTurma >= aula.limiteAulas) continue;
-
-                        vagasDisponiveis.push({ dia, hora });
-                    }
+                // 1. VERIFICAÇÃO DE CONFLITO NA TURMA
+                if (grade[turmaNome][`${dia}-${hora}`] !== null) {
+                    tentativas++;
+                    continue;
                 }
                 
-                if (vagasDisponiveis.length > 0) {
-                    const vagaAleatoria = vagasDisponiveis[Math.floor(Math.random() * vagasDisponiveis.length)];
-                    const { dia, hora } = vagaAleatoria;
+                // 2. VERIFICAÇÃO DE CONFLITO DE PROFESSOR
+                let conflitoProfessor = false;
+                for (const t in grade) {
+                    if (grade[t][`${dia}-${hora}`] && grade[t][`${dia}-${hora}`].professor === professorNome) {
+                        conflitoProfessor = true;
+                        break;
+                    }
+                }
+                if (conflitoProfessor) {
+                    tentativas++;
+                    continue;
+                }
+                
+                // 3. VERIFICAÇÃO DE AULAS GEMINADAS (se for a primeira aula de um par)
+                if (aula.aulasGeminadas && (aula.idUnico.endsWith('-0') || aula.idUnico.endsWith('-2') || aula.idUnico.endsWith('-4'))) {
+                    if (hora === 6) { 
+                        tentativas++;
+                        continue;
+                    }
+                    const proximaAula = grade[turmaNome][`${dia}-${hora + 1}`];
+                    if (proximaAula !== null) { 
+                        tentativas++;
+                        continue;
+                    }
+                }
 
-                    grade[aula.turma][`${dia}-${hora}`] = { 
-                        disciplina: aula.disciplina, 
-                        professor: professor.nome,
-                        dia: dia,
-                        hora: hora
-                    };
-                    aula.aulasPorSemana--;
+                // 4. VERIFICAÇÃO DE LIMITE DE AULAS POR DIA (turma)
+                let aulasNoDiaTurma = 0;
+                for (let h = 1; h <= 6; h++) {
+                    if (grade[turmaNome][`${dia}-${h}`] && grade[turmaNome][`${dia}-${h}`].disciplina === aula.disciplina) {
+                        aulasNoDiaTurma++;
+                    }
+                }
+                if (aulasNoDiaTurma >= aula.limiteAulas) {
+                    tentativas++;
+                    continue;
+                }
+                
+                // Se passou em todas as verificações, aloca a aula
+                grade[turmaNome][`${dia}-${hora}`] = { 
+                    disciplina: aula.disciplina, 
+                    professor: professorNome,
+                    dia: dia,
+                    hora: hora
+                };
+                alocadaComSucesso = true;
 
-                    if (aula.aulasGeminadas && aula.aulasPorSemana > 0) {
-                        if (grade[aula.turma][`${dia}-${hora + 1}`] === null) {
-                             grade[aula.turma][`${dia}-${hora + 1}`] = { 
-                                disciplina: aula.disciplina, 
-                                professor: professor.nome,
-                                dia: dia,
-                                hora: hora + 1
-                            };
-                            aula.aulasPorSemana--;
+                // Aloca a aula geminada, se aplicável
+                if (aula.aulasGeminadas && (aula.idUnico.endsWith('-0') || aula.idUnico.endsWith('-2') || aula.idUnico.endsWith('-4'))) {
+                    const aulaGeminada = aulasParaAlocar.find(a => a.idUnico === `${aula.professorNome}-${aula.disciplina}-${aula.turma}-${parseInt(aula.idUnico.split('-').pop()) + 1}`);
+                    if (aulaGeminada) {
+                         grade[turmaNome][`${dia}-${hora + 1}`] = { 
+                            disciplina: aulaGeminada.disciplina, 
+                            professor: aulaGeminada.professorNome,
+                            dia: dia,
+                            hora: hora + 1
+                        };
+                        const index = aulasParaAlocar.indexOf(aulaGeminada);
+                        if (index > -1) {
+                            aulasParaAlocar.splice(index, 1);
                         }
                     }
-                    alocadaComSucesso = true;
                 }
+            }
 
-                if (!alocadaComSucesso) {
-                    aulasRestantes.push(aula);
-                }
+            if (!alocadaComSucesso) {
+                aulasRestantes.push(aula);
             }
         }
         
         return { grade, aulasRestantes };
     }
 
-
     // Avalia o quão boa a grade é (quanto maior, melhor)
     function avaliarIndividuo(individuo, professores) {
-        let fitness = 10000;
+        let fitness = 100000; 
         const grade = individuo.grade;
         const aulasRestantes = individuo.aulasRestantes;
         const ocupacaoProfessor = {};
@@ -216,8 +241,24 @@ self.onmessage = function(e) {
             const aula1 = individuo.grade[turma1][`${dia}-${hora}`];
             const aula2 = individuo.grade[turma2][`${dia}-${hora}`];
 
-            individuo.grade[turma1][`${dia}-${hora}`] = aula2;
-            individuo.grade[turma2][`${dia}-${hora}`] = aula1;
+            // Troca apenas se não houver conflito de professor
+            const professor1 = aula1 ? aula1.professor : null;
+            const professor2 = aula2 ? aula2.professor : null;
+
+            if (professor1 !== professor2) {
+                // Se houver aula1, verifica se o professor1 tem disponibilidade na nova turma e dia
+                const professorObj1 = professor1 ? professores.find(p => p.nome === professor1) : null;
+                const podeTrocar1 = !professorObj1 || professorObj1.disponibilidade.includes(diasSemana[parseInt(dia)]);
+
+                // Se houver aula2, verifica se o professor2 tem disponibilidade na nova turma e dia
+                const professorObj2 = professor2 ? professores.find(p => p.nome === professor2) : null;
+                const podeTrocar2 = !professorObj2 || professorObj2.disponibilidade.includes(diasSemana[parseInt(dia)]);
+
+                if (podeTrocar1 && podeTrocar2) {
+                    individuo.grade[turma1][`${dia}-${hora}`] = aula2;
+                    individuo.grade[turma2][`${dia}-${hora}`] = aula1;
+                }
+            }
         }
     }
 
