@@ -261,7 +261,20 @@ document.addEventListener('DOMContentLoaded', () => {
             };
 
             const worker = new Worker('worker.js');
-            worker.postMessage({ professores, cargasHorarias, turmas, parametros });
+            
+            // Lógica para carregar a grade anterior
+            const gradeAnterior = carregarDados('gradeAnterior');
+            if (gradeAnterior) {
+                const usarGradeAnterior = confirm('Encontrada uma grade anterior. Deseja usar ela como base para a nova grade?');
+                if (usarGradeAnterior) {
+                    worker.postMessage({ professores, cargasHorarias, turmas, parametros, gradeAnterior });
+                } else {
+                    worker.postMessage({ professores, cargasHorarias, turmas, parametros });
+                }
+            } else {
+                worker.postMessage({ professores, cargasHorarias, turmas, parametros });
+            }
+
 
             worker.onmessage = (e) => {
                 if (e.data.status === 'progresso') {
@@ -271,8 +284,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     progressText.textContent = 'Completo!';
                     renderizarGrade(e.data.grade);
                     renderizarAulasSobrantes(e.data.aulasSobrantes);
-                    salvarDados('gradeGerada', e.data.grade);
-                    salvarDados('aulasSobrantes', e.data.aulasSobrantes);
+                    
+                    // Salvar a nova melhor grade para a próxima execução
+                    salvarDados('gradeAnterior', e.data.grade); 
+                    salvarDados('aulasSobrantesAnterior', e.data.aulasSobrantes);
+
                     gerarGradeIABtn.disabled = false;
                     novaGradeBtn.disabled = false;
                 }
@@ -285,8 +301,8 @@ document.addEventListener('DOMContentLoaded', () => {
             progressBarContainer.style.display = 'none';
         });
 
-        const gradeSalva = carregarDados('gradeGerada');
-        const aulasSalvas = carregarDados('aulasSobrantes');
+        const gradeSalva = carregarDados('gradeAnterior');
+        const aulasSalvas = carregarDados('aulasSobrantesAnterior');
         if (gradeSalva && aulasSalvas) {
             renderizarGrade(gradeSalva);
             renderizarAulasSobrantes(aulasSalvas);
