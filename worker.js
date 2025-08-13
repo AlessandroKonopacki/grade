@@ -1,20 +1,21 @@
 // worker.js
 
-// Essas variáveis e funções são necessárias para o algoritmo genético funcionar
-const diasDaSemana = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta'];
-const turmasFundamental = ['6º ano', '7º ano', '8º ano', '9º ano'];
-const turmasMedio = ['1º EM', '2º EM', '3º EM'];
-const todasTurmas = [...turmasFundamental, ...turmasMedio];
-const aulasPeriodoPadrao = [2, 3, 4, 5];
+let professores;
+let cargasHorarias;
+let params;
+let diasDaSemana;
+let todasTurmas;
+let aulasPeriodoPadrao;
+const numGeracoes = 10000;
+const tamanhoPopulacao = 100;
+const taxaMutacao = 0.1;
 
-let professores = [];
-let cargasHorarias = [];
-
-function getAulasPeriodo(turma, ativarFundamental, ativarMedio) {
-    if (turmasFundamental.includes(turma) && ativarFundamental) {
+// FUNÇÕES AUXILIARES
+function getAulasPeriodo(turma) {
+    if (['6º ano', '7º ano', '8º ano', '9º ano'].includes(turma) && params.ativarFundamental) {
         return [2, 3, 4, 5, 6];
     }
-    if (turmasMedio.includes(turma) && ativarMedio) {
+    if (['1º EM', '2º EM', '3º EM'].includes(turma) && params.ativarMedio) {
         return [2, 3, 4, 5, 6];
     }
     return aulasPeriodoPadrao;
@@ -27,40 +28,45 @@ function shuffleArray(array) {
     }
 }
 
-function estaEmOutraTurma(grade, dia, aula, professorNome) {
-    return todasTurmas.some(turma => grade[dia]?.[aula]?.[turma]?.includes(professorNome));
-}
-
-function temAulaConsecutiva(grade, dia, aula, turma, professorNome, ativarFundamental, ativarMedio) {
-    const aulasPeriodoFinal = getAulasPeriodo(turma, ativarFundamental, ativarMedio);
+function temAulaConsecutiva(grade, dia, aula, turma, professorNome) {
+    const aulasPeriodoFinal = getAulasPeriodo(turma);
     const aulaAnterior = aulasPeriodoFinal.find(a => a === aula - 1);
     const aulaPosterior = aulasPeriodoFinal.find(a => a === aula + 1);
 
-    if (aulaAnterior && grade[dia]?.[aulaAnterior]?.[turma]?.includes(professorNome)) {
+    if (aulaAnterior && grade[dia]?.[aulaAnterior]?.[turma]?.startsWith(professorNome)) {
         return true;
     }
-    if (aulaPosterior && grade[dia]?.[aulaPosterior]?.[turma]?.includes(professorNome)) {
+    if (aulaPosterior && grade[dia]?.[aulaPosterior]?.[turma]?.startsWith(professorNome)) {
         return true;
     }
     return false;
 }
 
-function gerarGradeInicial(ativarFundamental, ativarMedio) {
+function estaEmOutraTurma(grade, dia, aula, professorNome, turmaAtual) {
+    return todasTurmas.some(turma =>
+        turma !== turmaAtual &&
+        grade[dia]?.[aula]?.[turma]?.startsWith(professorNome)
+    );
+}
+
+// ALGORITMO GENÉTICO
+function gerarIndividuo() {
     let grade = {};
-    const aulasParaDistribuir = JSON.parse(JSON.stringify(cargasHorarias)); // Clonar para não alterar o original
+    const aulasParaDistribuir = JSON.parse(JSON.stringify(cargasHorarias));
     const aulasPorDiaProfessor = {};
+    let aulasAlocadas = 0;
 
     shuffleArray(aulasParaDistribuir);
 
     diasDaSemana.forEach(dia => {
         grade[dia] = {};
         todasTurmas.forEach(turma => {
-            getAulasPeriodo(turma, ativarFundamental, ativarMedio).forEach(aula => {
+            getAulasPeriodo(turma).forEach(aula => {
                 grade[dia][aula] = {};
             });
         });
     });
-    
+
     aulasParaDistribuir.forEach(carga => {
         let aulasRestantes = carga.aulas;
         const professor = professores.find(p => p.nome === carga.professorNome);
@@ -68,199 +74,173 @@ function gerarGradeInicial(ativarFundamental, ativarMedio) {
         while (aulasRestantes > 0) {
             let dia = diasDaSemana[Math.floor(Math.random() * diasDaSemana.length)];
             let turma = carga.turma;
-            let aulasPeriodo = getAulasPeriodo(turma, ativarFundamental, ativarMedio);
+            let aulasPeriodo = getAulasPeriodo(turma);
             shuffleArray(aulasPeriodo);
             let aula = aulasPeriodo[0];
-            
+
             if (!aulasPorDiaProfessor[professor.nome]) aulasPorDiaProfessor[professor.nome] = {};
             if (!aulasPorDiaProfessor[professor.nome][dia]) aulasPorDiaProfessor[professor.nome][dia] = 0;
-            
+
             const podeAlocar = professor &&
                                 professor.disponibilidade.includes(dia) &&
-                                !estaEmOutraTurma(grade, dia, aula, professor.nome) &&
+                                !estaEmOutraTurma(grade, dia, aula, professor.nome, turma) &&
                                 !grade[dia][aula][turma] &&
                                 aulasPorDiaProfessor[professor.nome][dia] < carga.limiteDiario &&
-                                (carga.aulaGeminada || !temAulaConsecutiva(grade, dia, aula, turma, professor.nome, ativarFundamental, ativarMedio));
-                                
+                                (carga.aulaGeminada || !temAulaConsecutiva(grade, dia, aula, turma, professor.nome));
+            
             if (podeAlocar) {
                 grade[dia][aula][turma] = `${professor.nome} (${carga.disciplina})`;
                 aulasPorDiaProfessor[professor.nome][dia]++;
                 aulasRestantes--;
+                aulasAlocadas++;
             }
         }
+        carga.aulas = aulasRestantes;
     });
-    
-    return { grade, aulasRestantes: aulasParaDistribuir.filter(a => a.aulas > 0) };
+
+    return { grade, aulasRestantes: aulasParaDistribuir, aulasAlocadas };
 }
 
-function calcularFitness(grade, ativarFundamental, ativarMedio) {
+function calcularFitness(individuo) {
     let score = 0;
-    let aulasAlocadas = 0;
-    const aulasTotais = cargasHorarias.reduce((acc, curr) => acc + curr.aulas, 0);
+    let aulasAlocadas = individuo.aulasAlocadas;
+    let conflitos = 0;
 
-    // Pontuação base: Aulas alocadas
     diasDaSemana.forEach(dia => {
-        if (grade[dia]) {
-            Object.values(grade[dia]).forEach(aulasPorTurma => {
-                aulasAlocadas += Object.keys(aulasPorTurma).length;
-            });
-        }
-    });
-    score += aulasAlocadas * 100;
-    
-    const aulasRestantes = aulasTotais - aulasAlocadas;
-    score -= aulasRestantes * 50;
-
-    // Bônus: Aulas geminadas
-    cargasHorarias.filter(c => c.aulaGeminada).forEach(carga => {
-        diasDaSemana.forEach(dia => {
-            const aulasDoDia = getAulasPeriodo(carga.turma, ativarFundamental, ativarMedio);
-            for (let i = 0; i < aulasDoDia.length - 1; i++) {
-                const aulaAtual = aulasDoDia[i];
-                const aulaSeguinte = aulasDoDia[i + 1];
-                const professorDisciplina1 = grade[dia]?.[aulaAtual]?.[carga.turma];
-                const professorDisciplina2 = grade[dia]?.[aulaSeguinte]?.[carga.turma];
-                
-                if (professorDisciplina1 && professorDisciplina2 && professorDisciplina1 === professorDisciplina2) {
-                    score += 20;
-                }
-            }
-        });
-    });
-
-    // Bônus: Consolidação de horário
-    professores.forEach(prof => {
-        diasDaSemana.forEach(dia => {
-            const aulasDoProfessorNoDia = [];
+        const aulasPossiveis = [2, 3, 4, 5, 6];
+        aulasPossiveis.forEach(aula => {
+            const professoresPorPeriodo = [];
             todasTurmas.forEach(turma => {
-                const aulasPeriodo = getAulasPeriodo(turma, ativarFundamental, ativarMedio);
-                aulasPeriodo.forEach(aula => {
-                    if (grade[dia]?.[aula]?.[turma]?.includes(prof.nome)) {
-                        aulasDoProfessorNoDia.push(aula);
-                    }
-                });
-            });
-
-            if (aulasDoProfessorNoDia.length > 1) {
-                const minAula = Math.min(...aulasDoProfessorNoDia);
-                const maxAula = Math.max(...aulasDoProfessorNoDia);
-                const totalPeriodo = maxAula - minAula + 1;
-                const aulasReal = aulasDoProfessorNoDia.length;
-                
-                if (totalPeriodo === aulasReal) {
-                    score += 10;
+                const professorDisciplina = individuo.grade[dia]?.[aula]?.[turma];
+                if (professorDisciplina) {
+                    const professorNome = professorDisciplina.split(' (')[0];
+                    professoresPorPeriodo.push(professorNome);
                 }
-            }
+            });
+            const uniqueProfessores = new Set(professoresPorPeriodo);
+            conflitos += professoresPorPeriodo.length - uniqueProfessores.size;
         });
     });
+
+    // Penalidade por conflitos
+    score -= conflitos * 1000;
+
+    // Pontuação por aulas alocadas
+    score += aulasAlocadas;
+    
+    // Bônus por aulas geminadas (aqui não está implementado, mas é onde a lógica entraria)
 
     return score;
 }
 
-function cruzar(grade1, grade2) {
-    let novaGrade = {};
-    diasDaSemana.forEach((dia, index) => {
-        if (index < 3) {
-            novaGrade[dia] = grade1[dia];
-        } else {
-            novaGrade[dia] = grade2[dia];
-        }
-    });
-    return novaGrade;
+function crossover(pai1, pai2) {
+    let filho = JSON.parse(JSON.stringify(pai1));
+    const crossoverPoint = Math.floor(Math.random() * diasDaSemana.length);
+
+    for (let i = 0; i < crossoverPoint; i++) {
+        const dia = diasDaSemana[i];
+        filho.grade[dia] = pai2.grade[dia];
+    }
+    return filho;
 }
 
-function mutar(grade, ativarFundamental, ativarMedio) {
-    const dia1 = diasDaSemana[Math.floor(Math.random() * diasDaSemana.length)];
-    const turma1 = todasTurmas[Math.floor(Math.random() * todasTurmas.length)];
-    const aulasTurma1 = getAulasPeriodo(turma1, ativarFundamental, ativarMedio);
-    const aula1 = aulasTurma1[Math.floor(Math.random() * aulasTurma1.length)];
-    
-    const dia2 = diasDaSemana[Math.floor(Math.random() * diasDaSemana.length)];
-    const turma2 = todasTurmas[Math.floor(Math.random() * todasTurmas.length)];
-    const aulasTurma2 = getAulasPeriodo(turma2, ativarFundamental, ativarMedio);
-    const aula2 = aulasTurma2[Math.floor(Math.random() * aulasTurma2.length)];
-    
-    if (grade[dia1]?.[aula1]?.[turma1] && grade[dia2]?.[aula2]?.[turma2]) {
-        const temp = grade[dia1][aula1][turma1];
-        grade[dia1][aula1][turma1] = grade[dia2][aula2][turma2];
-        grade[dia2][aula2][turma2] = temp;
-    }
-    return grade;
-}
+function mutarIndividuo(individuo) {
+    let grade = individuo.grade;
+    const dia = diasDaSemana[Math.floor(Math.random() * diasDaSemana.length)];
+    const turma = todasTurmas[Math.floor(Math.random() * todasTurmas.length)];
+    const aulasPeriodo = getAulasPeriodo(turma);
+    const aula = aulasPeriodo[Math.floor(Math.random() * aulasPeriodo.length)];
 
-function executarAlgoritmoGenetico(params) {
-    const { ativarFundamental, ativarMedio } = params;
-    
-    // --- Novos Parâmetros Otimizados para Velocidade ---
-    const NUM_GERACOES = 50; // Reduzimos de 200 para 100
-    const TAMANHO_POPULACAO = 20; // Reduzimos de 50 para 30
-    const POPULACAO_ELITE = 3; // Reduzimos de 10 para 5
-    // --- Fim dos Novos Parâmetros ---
+    let celulaOriginal = grade[dia]?.[aula]?.[turma];
 
-    let populacao = [];
-    
-    // Geração da população inicial
-    for (let i = 0; i < TAMANHO_POPULACAO; i++) {
-        populacao.push(gerarGradeInicial(ativarFundamental, ativarMedio));
-    }
-
-    for (let geracao = 0; geracao < NUM_GERACOES; geracao++) {
-        // Calcula a aptidão de cada grade
-        populacao.forEach(individuo => {
-            individuo.fitness = calcularFitness(individuo.grade, ativarFundamental, ativarMedio);
-        });
+    if (celulaOriginal) {
+        // Tenta mover a aula para outro slot
+        const novoDia = diasDaSemana[Math.floor(Math.random() * diasDaSemana.length)];
+        const novaAula = aulasPeriodo[Math.floor(Math.random() * aulasPeriodo.length)];
         
-        // Ordena a população pelas melhores notas
+        // Verifica se a nova posição é válida
+        const professorNome = celulaOriginal.split(' (')[0];
+        const professorObj = professores.find(p => p.nome === professorNome);
+        
+        const podeMover = professorObj.disponibilidade.includes(novoDia) &&
+                         !grade[novoDia]?.[novaAula]?.[turma] &&
+                         !estaEmOutraTurma(grade, novoDia, novaAula, professorNome, turma);
+
+        if (podeMover) {
+            grade[novoDia][novaAula][turma] = celulaOriginal;
+            grade[dia][aula][turma] = undefined;
+        }
+    }
+    individuo.grade = grade;
+    return individuo;
+}
+
+function algoritmoGenetico() {
+    let populacao = [];
+    for (let i = 0; i < tamanhoPopulacao; i++) {
+        const individuo = gerarIndividuo();
+        individuo.fitness = calcularFitness(individuo);
+        populacao.push(individuo);
+    }
+    
+    let melhorIndividuo = populacao.reduce((melhor, atual) => (atual.fitness > melhor.fitness) ? atual : melhor);
+
+    for (let geracao = 0; geracao < numGeracoes; geracao++) {
         populacao.sort((a, b) => b.fitness - a.fitness);
 
-        // Envia o progresso para o thread principal
-        self.postMessage({
-            type: 'progress',
-            geracao: geracao + 1,
-            melhorFitness: populacao[0].fitness,
-            numGeracoes: NUM_GERACOES // Envia o número total de gerações
-        });
-        
-        // Se a melhor grade já é perfeita (todas as aulas alocadas), para o algoritmo
-        if (populacao[0].aulasRestantes.length === 0) {
-            self.postMessage({
-                type: 'concluido',
-                melhorGrade: populacao[0].grade,
-                aulasRestantes: populacao[0].aulasRestantes
-            });
-            return;
-        }
+        let novaPopulacao = populacao.slice(0, 10);
 
-        // Geração da próxima população
-        const novaPopulacao = populacao.slice(0, POPULACAO_ELITE); // Mantém os melhores indivíduos
-        while (novaPopulacao.length < TAMANHO_POPULACAO) {
-            const pai1 = populacao[Math.floor(Math.random() * POPULACAO_ELITE)];
-            const pai2 = populacao[Math.floor(Math.random() * POPULACAO_ELITE)];
-            
-            const filho = cruzar(pai1.grade, pai2.grade);
-            
-            const filhoMutado = mutar(filho, ativarFundamental, ativarMedio);
-            
-            novaPopulacao.push({ grade: filhoMutado, aulasRestantes: {} });
+        while (novaPopulacao.length < tamanhoPopulacao) {
+            const pai1 = populacao[Math.floor(Math.random() * 50)];
+            const pai2 = populacao[Math.floor(Math.random() * 50)];
+
+            let filho = crossover(pai1, pai2);
+            if (Math.random() < taxaMutacao) {
+                filho = mutarIndividuo(filho);
+            }
+            filho.fitness = calcularFitness(filho);
+            novaPopulacao.push(filho);
         }
         populacao = novaPopulacao;
-    }
 
-    // Após todas as gerações, usa a melhor grade encontrada
-    populacao.sort((a, b) => b.fitness - a.fitness);
+        const melhorDaGeracao = populacao[0];
+        if (melhorDaGeracao.fitness > melhorIndividuo.fitness) {
+            melhorIndividuo = melhorDaGeracao;
+        }
+
+        if (geracao % 100 === 0) {
+            self.postMessage({
+                type: 'progress',
+                geracao: geracao,
+                numGeracoes: numGeracoes,
+                melhorFitness: melhorIndividuo.fitness
+            });
+        }
+    }
+    
+    // Retorna a melhor grade encontrada
+    const aulasRestantes = melhorIndividuo.aulasRestantes.filter(a => a.aulas > 0);
     self.postMessage({
         type: 'concluido',
-        melhorGrade: populacao[0].grade,
-        aulasRestantes: populacao[0].aulasRestantes
+        melhorGrade: melhorIndividuo.grade,
+        aulasRestantes: aulasRestantes
     });
 }
 
-// O worker recebe os dados do thread principal
+
 self.onmessage = (e) => {
-    const { tipo, data } = e.data;
-    if (tipo === 'iniciar') {
+    if (e.data.tipo === 'iniciar') {
+        const data = e.data.data;
         professores = data.professores;
         cargasHorarias = data.cargasHorarias;
-        executarAlgoritmoGenetico(data.params);
+        params = data.params;
+
+        diasDaSemana = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta'];
+        const turmasFundamental = ['6º ano', '7º ano', '8º ano', '9º ano'];
+        const turmasMedio = ['1º EM', '2º EM', '3º EM'];
+        todasTurmas = [...turmasFundamental, ...turmasMedio];
+        aulasPeriodoPadrao = [2, 3, 4, 5];
+
+        algoritmoGenetico();
     }
 };

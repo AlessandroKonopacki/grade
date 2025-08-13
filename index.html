@@ -1,108 +1,80 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
+<html lang="pt-br">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Distribuição de Professores</title>
+    <title>Gerador de Grade Horária</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <h1>Distribuição de Professores</h1>
     <div class="container">
+        <h1>Gerador de Grade Horária</h1>
+
         <div class="card">
             <h2>Cadastro de Professores</h2>
             <form id="professorForm">
-                <div class="form-group">
-                    <label for="nome">Nome do Professor:</label>
-                    <input type="text" id="nome" required>
-                </div>
-                <div class="form-group">
-                    <label for="disciplinas">Disciplinas (separadas por vírgula):</label>
-                    <input type="text" id="disciplinas" required>
-                </div>
-                <div class="form-group">
-                    <label for="nivelEnsino">Nível de Ensino:</label>
-                    <select id="nivelEnsino" required>
-                        <option value="">Selecione o nível</option>
-                        <option value="Fundamental">Ensino Fundamental (6º-9º ano)</option>
-                        <option value="Medio">Ensino Médio (1º-3º EM)</option>
-                        <option value="Ambos">Ambos</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label>Disponibilidade Semanal:</label>
-                    <div class="disponibilidade">
-                        <div>
-                            <input type="checkbox" id="disponivel-Segunda" value="Segunda">
-                            <label for="disponivel-Segunda">Segunda</label>
-                        </div>
-                        <div>
-                            <input type="checkbox" id="disponivel-Terça" value="Terça">
-                            <label for="disponivel-Terça">Terça</label>
-                        </div>
-                        <div>
-                            <input type="checkbox" id="disponivel-Quarta" value="Quarta">
-                            <label for="disponivel-Quarta">Quarta</label>
-                        </div>
-                        <div>
-                            <input type="checkbox" id="disponivel-Quinta" value="Quinta">
-                            <label for="disponivel-Quinta">Quinta</label>
-                        </div>
-                        <div>
-                            <input type="checkbox" id="disponivel-Sexta" value="Sexta">
-                            <label for="disponivel-Sexta">Sexta</label>
-                        </div>
+                <label for="nome">Nome do Professor:</label>
+                <input type="text" id="nome" required>
+                <label for="disciplinas">Disciplinas (separadas por vírgula):</label>
+                <input type="text" id="disciplinas" required>
+                <label for="nivelEnsino">Nível de Ensino:</label>
+                <select id="nivelEnsino" required>
+                    <option value="">Selecione...</option>
+                    <option value="Fundamental">Ensino Fundamental</option>
+                    <option value="Medio">Ensino Médio</option>
+                    <option value="Ambos">Ambos</option>
+                </select>
+                <div class="checkbox-group">
+                    <label>Disponibilidade:</label>
+                    <div class="checkboxes-wrapper">
+                        <label><input type="checkbox" name="disponibilidade" value="Segunda"> Segunda</label>
+                        <label><input type="checkbox" name="disponibilidade" value="Terça"> Terça</label>
+                        <label><input type="checkbox" name="disponibilidade" value="Quarta"> Quarta</label>
+                        <label><input type="checkbox" name="disponibilidade" value="Quinta"> Quinta</label>
+                        <label><input type="checkbox" name="disponibilidade" value="Sexta"> Sexta</label>
                     </div>
                 </div>
-                <button type="submit" class="btn">Adicionar Professor</button>
+                <button type="submit">Adicionar Professor</button>
             </form>
             <h3>Professores Cadastrados</h3>
             <ul id="professoresList"></ul>
         </div>
+
         <div class="card">
-            <h2>Carga Horária por Turma</h2>
+            <h2>Cadastro de Carga Horária</h2>
             <form id="cargaHorariaForm">
-                <div class="form-group">
-                    <label for="turmaCarga">Turma:</label>
-                    <select id="turmaCarga" required>
-                        <option value="">Selecione a turma</option>
-                        <option value="6º ano">6º ano</option>
-                        <option value="7º ano">7º ano</option>
-                        <option value="8º ano">8º ano</option>
-                        <option value="9º ano">9º ano</option>
-                        <option value="1º EM">1º EM</option>
-                        <option value="2º EM">2º EM</option>
-                        <option value="3º EM">3º EM</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="professorCarga">Professor:</label>
-                    <select id="professorCarga" required>
-                        <option value="">Selecione o professor</option>
-                    </select>
-                </div>
-                <div class="form-group">
-                    <label for="disciplinaCarga">Disciplina:</label>
-                    <input type="text" id="disciplinaCarga" required>
-                </div>
-                <div class="form-group">
-                    <label for="aulasCarga">Nº de Aulas Semanais:</label>
-                    <input type="number" id="aulasCarga" min="0" required>
-                </div>
-                <div class="form-group">
-                    <label for="limiteDiario">Limite de Aulas/Dia:</label>
-                    <input type="number" id="limiteDiario" min="1" required>
-                </div>
-                <div class="form-group checkbox-group">
+                <label for="professorCarga">Professor:</label>
+                <select id="professorCarga" required>
+                    <option value="">Selecione o professor</option>
+                </select>
+                <label for="turmaCarga">Turma:</label>
+                <select id="turmaCarga" required>
+                    <option value="">Selecione a turma</option>
+                    <option value="6º ano">6º ano</option>
+                    <option value="7º ano">7º ano</option>
+                    <option value="8º ano">8º ano</option>
+                    <option value="9º ano">9º ano</option>
+                    <option value="1º EM">1º EM</option>
+                    <option value="2º EM">2º EM</option>
+                    <option value="3º EM">3º EM</option>
+                </select>
+                <label for="disciplinaCarga">Disciplina:</label>
+                <input type="text" id="disciplinaCarga" required>
+                <label for="aulasCarga">Número de Aulas por Semana:</label>
+                <input type="number" id="aulasCarga" min="1" required>
+                <label for="limiteDiario">Limite de Aulas por Dia:</label>
+                <input type="number" id="limiteDiario" min="1" required>
+                <div class="checkbox-group">
+                    <label>Aulas Geminadas (Consecutivas):</label>
                     <input type="checkbox" id="aulaGeminada">
-                    <label for="aulaGeminada">Pode ter aulas consecutivas?</label>
                 </div>
-                <button type="submit" class="btn">Adicionar Carga Horária</button>
+                <button type="submit">Adicionar Carga</button>
             </form>
             <h3>Cargas Horárias Cadastradas</h3>
             <ul id="cargaHorariaList"></ul>
         </div>
-       <div class="card full-width">
+
+        <div class="card full-width">
             <h2>Grade Horária Gerada</h2>
             <div class="btn-group">
                 <div class="checkbox-group">
@@ -129,7 +101,7 @@
             <div id="aulasSobrantes"></div>
         </div>
     </div>
-    </div>
+
     <script src="main.js"></script>
 </body>
 </html>

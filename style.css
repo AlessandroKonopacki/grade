@@ -1,73 +1,94 @@
-/* Importação de fonte do Google Fonts para um visual mais moderno */
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
-
-/* Estilos gerais */
 body {
-    font-family: 'Roboto', sans-serif;
-    background-color: #f4f7f9;
-    color: #333;
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f9;
     margin: 0;
     padding: 20px;
-    line-height: 1.6;
 }
 
-h1, h2, h3 {
-    color: #1a2a47;
-}
-
-/* Layout principal */
 .container {
+    max-width: 1200px;
+    margin: 0 auto;
     display: flex;
     flex-wrap: wrap;
     gap: 20px;
-    justify-content: center;
 }
 
-/* Estilo para os cartões (cards) */
 .card {
     background-color: #fff;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     padding: 20px;
-    flex: 1 1 300px;
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    flex: 1;
+    min-width: 300px;
 }
 
-.card.full-width {
+.full-width {
     flex: 1 1 100%;
 }
 
-/* Estilo para os formulários */
-.form-group {
-    margin-bottom: 15px;
+h1, h2, h3 {
+    color: #333;
 }
 
-.form-group label {
-    display: block;
-    margin-bottom: 5px;
-    font-weight: 500;
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
 }
 
-input[type="text"],
-input[type="number"],
-select {
-    width: 100%;
-    padding: 10px;
+label {
+    font-weight: bold;
+}
+
+input[type="text"], input[type="number"], select {
+    padding: 8px;
     border: 1px solid #ccc;
     border-radius: 4px;
+    width: 100%;
     box-sizing: border-box;
-    font-size: 14px;
 }
 
-/* Estilo para o grupo de checkboxes */
-.disponibilidade {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 10px;
+button {
+    padding: 10px 15px;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 16px;
 }
 
-.disponibilidade div {
+button:hover {
+    background-color: #0056b3;
+}
+
+ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+li {
+    background-color: #e9ecef;
+    padding: 10px;
+    border-radius: 4px;
+    margin-bottom: 5px;
     display: flex;
+    justify-content: space-between;
     align-items: center;
+}
+
+.remove-btn {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.remove-btn:hover {
+    background-color: #c82333;
 }
 
 .checkbox-group {
@@ -76,227 +97,55 @@ select {
     gap: 10px;
 }
 
-.checkbox-group input[type="checkbox"] {
-    transform: scale(1.2);
-}
-
-/* Estilo para os botões */
-button {
-    cursor: pointer;
-    border: none;
-    padding: 10px 15px;
-    border-radius: 4px;
-    font-size: 14px;
-    font-weight: 500;
-    transition: background-color 0.3s ease;
-}
-
-.btn {
-    background-color: #4CAF50;
-    color: white;
-}
-
-.remove-btn {
-    background-color: #dc3545;
-    color: white;
-    padding: 5px 10px;
-    font-size: 12px;
-}
-
-/* Estilo para as listas de professores e cargas horárias */
-ul {
-    list-style: none;
-    padding: 0;
-}
-
-ul li {
-    background-color: #e9ecef;
-    padding: 10px;
-    border-radius: 4px;
-    margin-bottom: 8px;
+.checkboxes-wrapper {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 5px;
 }
 
-/* Estilo para o grupo de botões e checkboxes da grade */
 .btn-group {
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
-    margin-bottom: 20px;
+    margin-top: 10px;
     align-items: center;
 }
 
-/* Estilo da Tabela de Grade Horária */
 #gradeTable {
     width: 100%;
     border-collapse: collapse;
     margin-top: 20px;
-    table-layout: fixed;
 }
 
-#gradeTable thead th {
-    background-color: #4a5c7c;
-    color: white;
-    padding: 10px 5px;
-    text-align: center;
-    border: 1px solid #33435c;
-    font-size: 12px;
-}
-
-#gradeTable tbody td {
-    border: 1px solid #ddd;
-    padding: 5px;
-    text-align: center;
-    font-size: 11px;
-    height: 120px; /* Aumenta a altura para acomodar as aulas */
-    position: relative;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-}
-
-#gradeTable tbody td:hover {
-    background-color: #f1f1f1;
-}
-
-#gradeTable tbody td:first-child {
-    background-color: #f9f9f9;
-    font-weight: bold;
-    cursor: default;
-    height: auto;
-}
-
-/* Estilo para o conteúdo dentro da célula da grade */
-.grade-cell p {
-    margin: 0;
-    padding: 3px 0;
-    border-bottom: 1px solid #f0f0f0;
-    line-height: 1.2;
-}
-
-.grade-cell p:last-child {
-    border-bottom: none;
-}
-
-/* Estilos específicos para a grade */
-.aula-nao-disponivel {
-    background-color: #f0f0f0;
-    pointer-events: none;
-    cursor: not-allowed;
-}
-
-.grade-cell-selected {
-    border: 2px solid #007BFF !important;
-    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
-}
-
-/* Estilo para a mensagem de status e aulas sobrantes */
-#statusMessage {
-    margin-top: 20px;
+#gradeTable th, #gradeTable td {
+    border: 1px solid #ccc;
     padding: 10px;
-    border-radius: 4px;
-    font-weight: bold;
+    text-align: center;
 }
 
-#statusMessage[style*="green"] {
-    background-color: #d4edda;
-    color: #155724;
+#gradeTable th {
+    background-color: #f8f9fa;
 }
 
-#statusMessage[style*="orange"] {
-    background-color: #fff3cd;
-    color: #856404;
+.grade-cell {
+    position: relative;
+    padding: 10px;
 }
 
-#statusMessage[style*="red"] {
-    background-color: #f8d7da;
-    color: #721c24;
-}
-
-#statusMessage[style*="blue"] {
-    background-color: #cfe2ff;
-    color: #052c65;
+.grade-cell.conflito {
+    border: 2px solid red;
 }
 
 #aulasSobrantes {
     margin-top: 20px;
-    padding: 15px;
-    background-color: #f8d7da;
-    color: #721c24;
-    border-radius: 4px;
+    padding: 10px;
+    border: 1px dashed #ccc;
+    border-radius: 5px;
+    background-color: #fff3cd;
 }
 
 #aulasSobrantes h4 {
+    color: #856404;
     margin-top: 0;
-}
-
-/* Estilo para as mensagens flutuantes (feedback) */
-.floating-message {
-    position: absolute;
-    transform: translateX(-50%);
-    padding: 8px 12px;
-    border-radius: 4px;
-    font-weight: bold;
-    z-index: 1000;
-    text-align: center;
-    white-space: nowrap;
-    opacity: 0;
-    animation: fadeInOut 3s forwards;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
-}
-
-.floating-message-success {
-    background-color: #d4edda;
-    color: #155724;
-}
-
-.floating-message-error {
-    background-color: #f8d7da;
-    color: #721c24;
-}
-
-@keyframes fadeInOut {
-    0% { opacity: 0; top: -20px; }
-    10% { opacity: 1; top: 0px; }
-    90% { opacity: 1; top: 0px; }
-    100% { opacity: 0; top: -20px; }
-}
-
-/* Responsividade para telas menores */
-@media (max-width: 768px) {
-    .container {
-        flex-direction: column;
-    }
-    
-    .card {
-        flex: 1 1 100%;
-    }
-
-    .btn-group {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    #gradeTable {
-        font-size: 10px;
-        min-width: 600px;
-        overflow-x: auto;
-        white-space: nowrap;
-    }
-    
-    #gradeTable tbody td, #gradeTable thead th {
-        padding: 5px 2px;
-        font-size: 10px;
-    }
-
-    #gradeTable thead th {
-        font-size: 11px;
-    }
-}
-
-.aula-selected {
-    background-color: #e0f2ff; /* Cor de destaque para a aula selecionada */
-    border: 1px dashed #007bff;
-    border-radius: 4px;
 }

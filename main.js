@@ -17,7 +17,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const gerarGradeIABtn = document.getElementById('gerarGradeIABtn');
     const novaGradeBtn = document.getElementById('novaGradeBtn');
     const trocarBtn = document.getElementById('trocarBtn');
-    const gradeTableBody = document.getElementById('gradeTable').querySelector('tbody');
     const statusMessage = document.getElementById('statusMessage');
     const aulasSobrantesDiv = document.getElementById('aulasSobrantes');
     
@@ -38,7 +37,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let swapMode = false;
     let selectedCell = null;
     let selectedAula = null;
-    let floatingMessageTimeout;
     
     // --- Funções Auxiliares de Lógica e Renderização ---
     function getAulasPeriodo(turma) {
@@ -83,71 +81,6 @@ document.addEventListener('DOMContentLoaded', () => {
             cargaHorariaList.appendChild(li);
         });
     }
-
-    function renderizarGrade() {
-        const gradeTable = document.getElementById('gradeTable');
-        gradeTable.innerHTML = '';
-        
-        // Cabeçalho da tabela
-        const thead = document.createElement('thead');
-        const headerRow = document.createElement('tr');
-        
-        const thDiaAula = document.createElement('th');
-        thDiaAula.textContent = 'Dia/Aula';
-        headerRow.appendChild(thDiaAula);
-
-        todasTurmas.forEach(turma => {
-            const thTurma = document.createElement('th');
-            thTurma.textContent = turma;
-            headerRow.appendChild(thTurma);
-        });
-        
-        thead.appendChild(headerRow);
-        gradeTable.appendChild(thead);
-
-        // Corpo da tabela
-        const tbody = document.createElement('tbody');
-        
-        diasDaSemana.forEach(dia => {
-            let aulasDoDia = getAulasPeriodo(todasTurmas[0]); // Pega as aulas de uma turma para definir o rowspan
-            
-            aulasDoDia.forEach((aula, index) => {
-                const tr = document.createElement('tr');
-
-                // Célula do dia da semana com rowspan
-                if (index === 0) {
-                    const tdDia = document.createElement('td');
-                    tdDia.textContent = dia;
-                    tdDia.rowSpan = aulasDoDia.length;
-                    tdDia.style.verticalAlign = 'top';
-                    tr.appendChild(tdDia);
-                }
-
-                // Células das turmas
-                todasTurmas.forEach(turma => {
-                    const tdConteudo = document.createElement('td');
-                    tdConteudo.classList.add('grade-cell');
-                    tdConteudo.dataset.dia = dia;
-                    tdConteudo.dataset.aula = aula;
-                    tdConteudo.dataset.turma = turma;
-                    
-                    const professorDisciplina = gradeHoraria[dia]?.[aula]?.[turma];
-                    if (professorDisciplina) {
-                        const [nomeProfessor, disciplina] = professorDisciplina.split(' (');
-                        const disciplinaFormatada = disciplina.substring(0, disciplina.length - 1);
-                        tdConteudo.textContent = `${nomeProfessor} (${disciplinaFormatada})`;
-                    }
-
-                    tr.appendChild(tdConteudo);
-                });
-                
-                tbody.appendChild(tr);
-            });
-        });
-        
-        gradeTable.appendChild(tbody);
-    }
-
     
     function renderizarAulasSobrantes(aulasRestantes) {
         aulasSobrantesDiv.innerHTML = '';
@@ -184,17 +117,51 @@ document.addEventListener('DOMContentLoaded', () => {
         const aulaAnterior = aulasPeriodoFinal.find(a => a === aula - 1);
         const aulaPosterior = aulasPeriodoFinal.find(a => a === aula + 1);
     
-        if (aulaAnterior && grade[dia]?.[aulaAnterior]?.[turma]?.includes(professorNome)) {
+        if (aulaAnterior && grade[dia]?.[aulaAnterior]?.[turma]?.startsWith(professorNome)) {
             return true;
         }
-        if (aulaPosterior && grade[dia]?.[aulaPosterior]?.[turma]?.includes(professorNome)) {
+        if (aulaPosterior && grade[dia]?.[aulaPosterior]?.[turma]?.startsWith(professorNome)) {
             return true;
         }
         return false;
     }
     
-    function estaEmOutraTurma(grade, dia, aula, professorNome) {
-        return todasTurmas.some(turma => grade[dia]?.[aula]?.[turma]?.includes(professorNome));
+    function estaEmOutraTurma(grade, dia, aula, professorNome, turmaAtual) {
+        return todasTurmas.some(turma =>
+            turma !== turmaAtual &&
+            grade[dia]?.[aula]?.[turma]?.startsWith(professorNome)
+        );
+    }
+
+    function checarConflito(grade) {
+        const conflitos = [];
+        const professorOcupacao = {};
+
+        diasDaSemana.forEach(dia => {
+            const aulasPossiveis = [2, 3, 4, 5, 6];
+            aulasPossiveis.forEach(aula => {
+                const alocacoesPorPeriodo = [];
+                todasTurmas.forEach(turma => {
+                    const professorDisciplina = grade[dia]?.[aula]?.[turma];
+                    if (professorDisciplina) {
+                        alocacoesPorPeriodo.push({
+                            dia,
+                            aula,
+                            turma,
+                            professorNome: professorDisciplina.split(' (')[0]
+                        });
+                    }
+                });
+
+                const professoresNestePeriodo = alocacoesPorPeriodo.map(a => a.professorNome);
+                const professoresComConflito = professoresNestePeriodo.filter((prof, index) => professoresNestePeriodo.indexOf(prof) !== index);
+                
+                if (professoresComConflito.length > 0) {
+                    conflitos.push(...alocacoesPorPeriodo.filter(a => professoresComConflito.includes(a.professorNome)));
+                }
+            });
+        });
+        return conflitos;
     }
     
     function gerarGradeInicial() {
@@ -229,7 +196,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 
                 const podeAlocar = professor &&
                                     professor.disponibilidade.includes(dia) &&
-                                    !estaEmOutraTurma(grade, dia, aula, professor.nome) &&
+                                    !estaEmOutraTurma(grade, dia, aula, professor.nome, turma) &&
                                     !grade[dia][aula][turma] &&
                                     aulasPorDiaProfessor[professor.nome][dia] < carga.limiteDiario &&
                                     (carga.aulaGeminada || !temAulaConsecutiva(grade, dia, aula, turma, professor.nome));
@@ -303,6 +270,78 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
     
+    function renderizarGrade() {
+        const gradeTable = document.getElementById('gradeTable');
+        const gradeTableBody = gradeTable.querySelector('tbody');
+        gradeTable.innerHTML = '';
+        
+        const conflitos = checarConflito(gradeHoraria);
+        console.log('Conflitos detectados:', conflitos);
+        
+        // Cabeçalho da tabela
+        const thead = document.createElement('thead');
+        const headerRow = document.createElement('tr');
+        
+        const thDiaAula = document.createElement('th');
+        thDiaAula.textContent = 'Dia/Aula';
+        headerRow.appendChild(thDiaAula);
+
+        todasTurmas.forEach(turma => {
+            const thTurma = document.createElement('th');
+            thTurma.textContent = turma;
+            headerRow.appendChild(thTurma);
+        });
+        
+        thead.appendChild(headerRow);
+        gradeTable.appendChild(thead);
+
+        // Corpo da tabela
+        const tbody = document.createElement('tbody');
+        
+        diasDaSemana.forEach(dia => {
+            const aulasPossiveis = [2, 3, 4, 5, 6];
+            
+            aulasPossiveis.forEach((aula, index) => {
+                const tr = document.createElement('tr');
+
+                // Célula do dia da semana com rowspan
+                if (index === 0) {
+                    const tdDia = document.createElement('td');
+                    tdDia.textContent = dia;
+                    tdDia.rowSpan = aulasPossiveis.length;
+                    tdDia.style.verticalAlign = 'top';
+                    tr.appendChild(tdDia);
+                }
+
+                // Células das turmas
+                todasTurmas.forEach(turma => {
+                    const tdConteudo = document.createElement('td');
+                    tdConteudo.classList.add('grade-cell');
+                    tdConteudo.dataset.dia = dia;
+                    tdConteudo.dataset.aula = aula;
+                    tdConteudo.dataset.turma = turma;
+                    
+                    const professorDisciplina = gradeHoraria[dia]?.[aula]?.[turma];
+                    if (professorDisciplina) {
+                        const [nomeProfessor, disciplina] = professorDisciplina.split(' (');
+                        const disciplinaFormatada = disciplina.substring(0, disciplina.length - 1);
+                        tdConteudo.textContent = `${nomeProfessor} (${disciplinaFormatada})`;
+                        
+                        const temConflito = conflitos.some(c => c.dia === dia && c.aula === aula && c.turma === turma);
+                        if (temConflito) {
+                            tdConteudo.classList.add('conflito');
+                        }
+                    }
+                    tr.appendChild(tdConteudo);
+                });
+                
+                tbody.appendChild(tr);
+            });
+        });
+        
+        gradeTable.appendChild(tbody);
+    }
+    
     // --- Event Listeners ---
     professorForm.addEventListener('submit', (e) => {
         e.preventDefault();
@@ -314,20 +353,13 @@ document.addEventListener('DOMContentLoaded', () => {
             disponibilidade.push(checkbox.value);
         });
 
-        // MENSAGENS DE DEBUG PARA VER O QUE ESTÁ SENDO CAPTURADO
-        console.log('Tentativa de cadastrar professor.');
-        console.log('Dados capturados:', { nome, disciplinas, nivelEnsino, disponibilidade });
-        console.log('Validade dos campos:', !!nome, disciplinas.length > 0, !!nivelEnsino, disponibilidade.length > 0);
-        
         if (nome && disciplinas.length > 0 && nivelEnsino && disponibilidade.length > 0) {
             professores.push({ nome, disciplinas, nivelEnsino, disponibilidade });
             localStorage.setItem('professores', JSON.stringify(professores));
             renderizarProfessores();
             professorForm.reset();
-            console.log('Professor cadastrado com sucesso!');
         } else {
             alert('Por favor, preencha todos os campos do professor!');
-            console.error('Falha no cadastro: Um ou mais campos estão vazios.');
         }
     });
 
@@ -383,7 +415,6 @@ document.addEventListener('DOMContentLoaded', () => {
         renderizarAulasSobrantes(resultado.aulasRestantes);
     });
 
-    // ... (coloque o restante do seu código, incluindo handleTableClick e outras funções que você tenha)
     // Inicialização
     renderizarProfessores();
     renderizarCargasHorarias();
