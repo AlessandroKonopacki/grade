@@ -1,3 +1,5 @@
+// main.js
+
 document.addEventListener('DOMContentLoaded', () => {
     // Declarações de elementos do DOM
     const professorForm = document.getElementById('professorForm');
@@ -9,7 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const turmaCargaSelect = document.getElementById('turmaCarga');
     const ativarAula6FundamentalCheckbox = document.getElementById('ativarAula6Fundamental');
     const ativarAula6MedioCheckbox = document.getElementById('ativarAula6Medio');
-    const gerarGradeIABtn = document.getElementById('gerarGradeIABtn'); // <-- NOVO NOME DO BOTÃO
+    const gerarGradeIABtn = document.getElementById('gerarGradeIABtn');
     const novaGradeBtn = document.getElementById('novaGradeBtn');
     const trocarBtn = document.getElementById('trocarBtn');
     const gradeTableBody = document.getElementById('gradeTable').querySelector('tbody');
@@ -30,14 +32,18 @@ document.addEventListener('DOMContentLoaded', () => {
     let selectedCell = null;
     let selectedAula = null;
 
-    // --- Funções Auxiliares ---
-    function shuffleArray(array) {
-        for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
+    // Função para obter o período de aulas com base nas checkboxes
+    function getAulasPeriodo(turma) {
+        if (turmasFundamental.includes(turma) && ativarAula6FundamentalCheckbox.checked) {
+            return [2, 3, 4, 5, 6];
         }
+        if (turmasMedio.includes(turma) && ativarAula6MedioCheckbox.checked) {
+            return [2, 3, 4, 5, 6];
+        }
+        return aulasPeriodoPadrao;
     }
 
+    // --- Funções Auxiliares de Renderização e Lógica do UI ---
     function renderizarProfessores() {
         professoresList.innerHTML = '';
         professorCargaSelect.innerHTML = '<option value="">Selecione o professor</option>';
@@ -70,7 +76,7 @@ document.addEventListener('DOMContentLoaded', () => {
             cargaHorariaList.appendChild(li);
         });
     }
-    
+
     function renderizarGrade() {
         gradeTableBody.innerHTML = '';
 
@@ -128,108 +134,67 @@ document.addEventListener('DOMContentLoaded', () => {
             aulasSobrantesDiv.appendChild(mensagem);
         }
     }
-
-    function getAulasPeriodo(turma) {
-        if (turmasFundamental.includes(turma) && ativarAula6FundamentalCheckbox.checked) {
-            return [2, 3, 4, 5, 6];
+    
+    // ... (o resto das suas funções auxiliares como handleTableClick, podeAlocar, etc.)
+    // ... (que não foram alteradas e precisam estar aqui no main.js)
+    
+    // --- Lógica do Web Worker para o Algoritmo Genético ---
+    function iniciarWorkerAlgoritmoGenetico() {
+        if (typeof Worker === 'undefined') {
+            statusMessage.textContent = 'Seu navegador não suporta Web Workers.';
+            statusMessage.style.color = 'red';
+            return;
         }
-        if (turmasMedio.includes(turma) && ativarAula6MedioCheckbox.checked) {
-            return [2, 3, 4, 5, 6];
-        }
-        return aulasPeriodoPadrao;
-    }
 
-    function handleTableClick(e) {
-        if (!swapMode) return;
+        const myWorker = new Worker('worker.js');
+        const NUM_GERACOES = 200;
+        const TAMANHO_POPULACAO = 50;
+        const POPULACAO_ELITE = 10;
         
-        const targetElement = e.target.closest('p[data-aula]');
-        if (!targetElement) return;
-
-        const cell = targetElement.closest('td');
-        const getProfessorInfoFromElement = (element) => {
-            const text = element.textContent.split(': ')[1];
-            const nome = text.split(' (')[0];
-            const disciplinaAbreviada = text.split('(')[1].replace(')', '');
-            
-            const professorObj = professores.find(p => p.nome === nome && p.disciplinas.some(d => d.toLowerCase().startsWith(disciplinaAbreviada.toLowerCase())));
-
-            return {
-                nome: professorObj ? professorObj.nome : null,
-                disciplina: disciplinaAbreviada
-            };
-        };
-
-        if (!selectedCell) {
-            selectedCell = cell;
-            selectedAula = targetElement;
-            selectedAula.classList.add('aula-selected');
-        } else {
-            if (selectedAula === targetElement) {
-                selectedAula.classList.remove('aula-selected');
-                selectedCell = null;
-                selectedAula = null;
-                return;
+        // Envia os dados e parâmetros iniciais para o worker
+        myWorker.postMessage({
+            tipo: 'iniciar',
+            data: {
+                professores,
+                cargasHorarias,
+                params: {
+                    NUM_GERACOES,
+                    TAMANHO_POPULACAO,
+                    POPULACAO_ELITE,
+                    ativarFundamental: ativarAula6FundamentalCheckbox.checked,
+                    ativarMedio: ativarAula6MedioCheckbox.checked
+                }
             }
+        });
+        
+        statusMessage.textContent = 'Gerando grade horária... Por favor, aguarde.';
+        statusMessage.style.color = '#1a5cff';
 
-            const prof1 = getProfessorInfoFromElement(selectedAula);
-            const prof2 = getProfessorInfoFromElement(targetElement);
-            
-            const prof1Obj = professores.find(p => p.nome === prof1.nome);
-            const prof2Obj = professores.find(p => p.nome === prof2.nome);
-
-            const cell1Data = {
-                dia: selectedCell.dataset.dia,
-                aula: parseInt(selectedAula.dataset.aula),
-                turma: selectedCell.dataset.turma,
-                disciplina: prof1.disciplina,
-                professorNome: prof1.nome
-            };
-            const cell2Data = {
-                dia: cell.dataset.dia,
-                aula: parseInt(targetElement.dataset.aula),
-                turma: cell.dataset.turma,
-                disciplina: prof2.disciplina,
-                professorNome: prof2.nome
-            };
-            
-            const validation1 = podeAlocar(prof1Obj, cell2Data);
-            const validation2 = podeAlocar(prof2Obj, cell1Data);
-
-            if (validation1.isValid && validation2.isValid) {
-                const professorDisciplina1 = prof1Obj ? `${prof1.nome} (${prof1.disciplina})` : '';
-                const professorDisciplina2 = prof2Obj ? `${prof2.nome} (${prof2.disciplina})` : '';
-
-                if (gradeHoraria[cell1Data.dia]?.[cell1Data.aula]) {
-                    gradeHoraria[cell1Data.dia][cell1Data.aula][cell1Data.turma] = professorDisciplina2;
-                }
-                if (gradeHoraria[cell2Data.dia]?.[cell2Data.aula]) {
-                    gradeHoraria[cell2Data.dia][cell2Data.aula][cell2Data.turma] = professorDisciplina1;
-                }
-
+        myWorker.onmessage = (e) => {
+            const { type, geracao, melhorFitness, melhorGrade, aulasRestantes } = e.data;
+            if (type === 'progress') {
+                statusMessage.textContent = `Gerando grade... Geração ${geracao}/${NUM_GERACOES}. Melhor fitness: ${melhorFitness}`;
+            } else if (type === 'concluido') {
+                gradeHoraria = melhorGrade;
                 renderizarGrade();
-                displayFloatingMessage('Troca realizada com sucesso!', 'success', cell);
-            } else {
-                const errorMessage = !validation1.isValid ? validation1.message : validation2.message;
-                displayFloatingMessage(errorMessage, 'error', cell);
+                renderizarAulasSobrantes(aulasRestantes);
+                if (aulasRestantes.length === 0) {
+                    statusMessage.textContent = 'Grade horária gerada com sucesso!';
+                    statusMessage.style.color = 'green';
+                } else {
+                    statusMessage.textContent = 'Geração de grade concluída. Não foi possível alocar todas as aulas.';
+                    statusMessage.style.color = 'orange';
+                }
             }
-
-            selectedAula.classList.remove('aula-selected');
-            selectedCell = null;
-            selectedAula = null;
-        }
+        };
     }
-
-    function displayFloatingMessage(message, type, targetElement) {
-        const floatingMessage = document.createElement('div');
-        floatingMessage.textContent = message;
-        floatingMessage.classList.add('floating-message', `floating-message-${type}`);
-        const rect = targetElement.getBoundingClientRect();
-        floatingMessage.style.left = `${rect.left + window.scrollX + rect.width / 2}px`;
-        floatingMessage.style.top = `${rect.top + window.scrollY}px`;
-        document.body.appendChild(floatingMessage);
-        setTimeout(() => {
-            floatingMessage.remove();
-        }, 3000);
+    
+    // As funções que não são do worker, como a de gerar grade aleatória, permanecem aqui
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
     }
     
     function temAulaConsecutiva(grade, dia, aula, turma, professorNome) {
@@ -246,67 +211,13 @@ document.addEventListener('DOMContentLoaded', () => {
         return false;
     }
     
-    function aulasPorDia(grade, dia, professorNome) {
-        let count = 0;
-        todasTurmas.forEach(turma => {
-            getAulasPeriodo(turma).forEach(aula => {
-                if (grade[dia]?.[aula]?.[turma]?.includes(professorNome)) {
-                    count++;
-                }
-            });
-        });
-        return count;
-    }
-
     function estaEmOutraTurma(grade, dia, aula, professorNome) {
         return todasTurmas.some(turma => grade[dia]?.[aula]?.[turma]?.includes(professorNome));
     }
-
-    function podeAlocar(professorObj, slotData) {
-        const { nome, nivelEnsino, disponibilidade } = professorObj || {};
-        const { dia, aula, turma, disciplina, professorNome } = slotData;
-        const grade = gradeHoraria;
-        
-        if (!nome) return { isValid: true };
-        
-        const aulasParaTurma = getAulasPeriodo(turma);
-        if (!aulasParaTurma.includes(aula)) {
-            return { isValid: false, message: `Erro: A 6ª aula não está ativada para a turma ${turma}.` };
-        }
-        
-        if (!disponibilidade.includes(dia)) {
-            return { isValid: false, message: `Erro: ${nome} não está disponível na ${dia}.` };
-        }
-        
-        const nivelValido = 
-            (nivelEnsino === 'Fundamental' && turmasFundamental.includes(turma)) ||
-            (nivelEnsino === 'Medio' && turmasMedio.includes(turma)) ||
-            (nivelEnsino === 'Ambos');
-        if (!nivelValido) {
-            return { isValid: false, message: `Erro: ${nome} não pode lecionar na turma ${turma}.` };
-        }
-
-        const conflito = todasTurmas.some(turmaConflito => {
-            if (turmaConflito !== turma && grade[dia]?.[aula]?.[turmaConflito]?.includes(nome)) {
-                return true;
-            }
-            return false;
-        });
-        if (conflito) return { isValid: false, message: `Erro: ${nome} já tem aula em outra turma na ${dia}, ${aula}ª aula.` };
-        
-        const carga = cargasHorarias.find(c => c.turma === turma && c.disciplina.toLowerCase() === disciplina.toLowerCase() && c.professorNome === professorNome);
-        
-        if (carga && !carga.aulaGeminada && temAulaConsecutiva(grade, dia, aula, turma, nome)) {
-            return { isValid: false, message: `Erro: ${nome} teria aulas consecutivas na ${turma}.` };
-        }
-        
-        return { isValid: true };
-    }
-
-    // --- Lógica do Algoritmo Genético ---
+    
     function gerarGradeInicial() {
         let grade = {};
-        const aulasParaDistribuir = [...cargasHorarias];
+        const aulasParaDistribuir = JSON.parse(JSON.stringify(cargasHorarias)); // Clonar para não alterar o original
         const aulasPorDiaProfessor = {};
 
         shuffleArray(aulasParaDistribuir);
@@ -352,257 +263,22 @@ document.addEventListener('DOMContentLoaded', () => {
         return { grade, aulasRestantes: aulasParaDistribuir.filter(a => a.aulas > 0) };
     }
 
-    function calcularFitness(grade) {
-        let score = 0;
-        let aulasAlocadas = 0;
-        const aulasTotais = cargasHorarias.reduce((acc, curr) => acc + curr.aulas, 0);
-
-        // Pontuação base: Aulas alocadas
-        diasDaSemana.forEach(dia => {
-            if (grade[dia]) {
-                Object.values(grade[dia]).forEach(aulasPorTurma => {
-                    aulasAlocadas += Object.keys(aulasPorTurma).length;
-                });
-            }
-        });
-        score += aulasAlocadas * 100;
-        
-        const aulasRestantes = aulasTotais - aulasAlocadas;
-        score -= aulasRestantes * 50;
-
-        // Bônus: Aulas geminadas
-        cargasHorarias.filter(c => c.aulaGeminada).forEach(carga => {
-            diasDaSemana.forEach(dia => {
-                const aulasDoDia = getAulasPeriodo(carga.turma);
-                for (let i = 0; i < aulasDoDia.length - 1; i++) {
-                    const aulaAtual = aulasDoDia[i];
-                    const aulaSeguinte = aulasDoDia[i + 1];
-                    const professorDisciplina1 = grade[dia]?.[aulaAtual]?.[carga.turma];
-                    const professorDisciplina2 = grade[dia]?.[aulaSeguinte]?.[carga.turma];
-                    
-                    if (professorDisciplina1 && professorDisciplina2 && professorDisciplina1 === professorDisciplina2) {
-                        score += 20;
-                    }
-                }
-            });
-        });
-
-        // Bônus: Consolidação de horário
-        professores.forEach(prof => {
-            diasDaSemana.forEach(dia => {
-                const aulasDoProfessorNoDia = [];
-                todasTurmas.forEach(turma => {
-                    const aulasPeriodo = getAulasPeriodo(turma);
-                    aulasPeriodo.forEach(aula => {
-                        if (grade[dia]?.[aula]?.[turma]?.includes(prof.nome)) {
-                            aulasDoProfessorNoDia.push(aula);
-                        }
-                    });
-                });
-
-                if (aulasDoProfessorNoDia.length > 1) {
-                    const minAula = Math.min(...aulasDoProfessorNoDia);
-                    const maxAula = Math.max(...aulasDoProfessorNoDia);
-                    const totalPeriodo = maxAula - minAula + 1;
-                    const aulasReal = aulasDoProfessorNoDia.length;
-                    
-                    if (totalPeriodo === aulasReal) {
-                        score += 10;
-                    }
-                }
-            });
-        });
-
-        return score;
-    }
-    
-    async function executarAlgoritmoGenetico() {
-        const TAMANHO_POPULACAO = 50;
-        const NUM_GERACOES = 200; // Aumentamos as gerações para uma melhor solução
-        const POPULACAO_ELITE = 10;
-        let populacao = [];
-
-        // Função auxiliar para pausar o script e permitir que o navegador "respire"
-        function pausar() {
-            return new Promise(resolve => setTimeout(resolve, 0));
-        }
-
-        console.log('%c[IA] Iniciando o Algoritmo Genético...', 'color: green;');
-        statusMessage.textContent = 'Gerando grade horária... Por favor, aguarde.';
-        statusMessage.style.color = '#1a5cff';
-
-        // Geração da população inicial
-        for (let i = 0; i < TAMANHO_POPULACAO; i++) {
-            populacao.push(gerarGradeInicial());
-        }
-
-        for (let geracao = 0; geracao < NUM_GERACOES; geracao++) {
-            // Pausa para o navegador
-            await pausar();
-            
-            // Calcula a aptidão de cada grade
-            populacao.forEach(individuo => {
-                individuo.fitness = calcularFitness(individuo.grade);
-            });
-            
-            // Ordena a população pelas melhores notas
-            populacao.sort((a, b) => b.fitness - a.fitness);
-
-            // Atualiza a interface com o progresso
-            statusMessage.textContent = `Gerando grade... Geração ${geracao + 1}/${NUM_GERACOES}. Melhor fitness: ${populacao[0].fitness}`;
-            
-            // Se a melhor grade já é perfeita (todas as aulas alocadas), para o algoritmo
-            if (populacao[0].aulasRestantes.length === 0) {
-                console.log(`%c[IA] Solução perfeita encontrada na geração ${geracao + 1}!`, 'color: green;');
-                gradeHoraria = populacao[0].grade;
-                renderizarGrade();
-                renderizarAulasSobrantes(populacao[0].aulasRestantes);
-                statusMessage.textContent = 'Grade horária gerada com sucesso!';
-                statusMessage.style.color = 'green';
-                return;
-            }
-
-            // Geração da próxima população
-            const novaPopulacao = populacao.slice(0, POPULACAO_ELITE); // Mantém os melhores indivíduos
-            while (novaPopulacao.length < TAMANHO_POPULACAO) {
-                // Seleciona 2 pais da população atual (os melhores)
-                const pai1 = populacao[Math.floor(Math.random() * POPULACAO_ELITE)];
-                const pai2 = populacao[Math.floor(Math.random() * POPULACAO_ELITE)];
-                
-                // Crossover: Cria um novo indivíduo combinando os pais
-                const filho = cruzar(pai1.grade, pai2.grade);
-                
-                // Mutação: Aplica uma pequena mudança aleatória
-                const filhoMutado = mutar(filho);
-                
-                novaPopulacao.push({ grade: filhoMutado, aulasRestantes: {} });
-            }
-            populacao = novaPopulacao;
-        }
-
-        // Após todas as gerações, usa a melhor grade encontrada
-        populacao.sort((a, b) => b.fitness - a.fitness);
-        gradeHoraria = populacao[0].grade;
-        renderizarGrade();
-        renderizarAulasSobrantes(populacao[0].aulasRestantes);
-        console.log(`%c[IA] Melhor solução encontrada com fitness: ${populacao[0].fitness}`, 'color: #1a5cff;');
-        statusMessage.textContent = 'Geração de grade concluída.';
-        statusMessage.style.color = '#1a5cff';
-    }
-
-    function cruzar(grade1, grade2) {
-        let novaGrade = {};
-        diasDaSemana.forEach((dia, index) => {
-            if (index < 3) {
-                novaGrade[dia] = grade1[dia];
-            } else {
-                novaGrade[dia] = grade2[dia];
-            }
-        });
-        return novaGrade;
-    }
-
-    function mutar(grade) {
-        const dia1 = diasDaSemana[Math.floor(Math.random() * diasDaSemana.length)];
-        const turma1 = todasTurmas[Math.floor(Math.random() * todasTurmas.length)];
-        const aulasTurma1 = getAulasPeriodo(turma1);
-        const aula1 = aulasTurma1[Math.floor(Math.random() * aulasTurma1.length)];
-        
-        const dia2 = diasDaSemana[Math.floor(Math.random() * diasDaSemana.length)];
-        const turma2 = todasTurmas[Math.floor(Math.random() * todasTurmas.length)];
-        const aulasTurma2 = getAulasPeriodo(turma2);
-        const aula2 = aulasTurma2[Math.floor(Math.random() * aulasTurma2.length)];
-        
-        if (grade[dia1]?.[aula1]?.[turma1] && grade[dia2]?.[aula2]?.[turma2]) {
-            const temp = grade[dia1][aula1][turma1];
-            grade[dia1][aula1][turma1] = grade[dia2][aula2][turma2];
-            grade[dia2][aula2][turma2] = temp;
-        }
-        return grade;
-    }
-
     // --- Event Listeners ---
+    // ... (Seus event listeners de formulário, botões, etc. não precisam ser alterados)
     professorForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const nome = document.getElementById('nome').value;
-        const disciplinas = document.getElementById('disciplinas').value.split(',').map(d => d.trim().toLowerCase());
-        const nivelEnsino = document.getElementById('nivelEnsino').value;
-        const disponibilidade = [];
-        document.querySelectorAll('#professorForm input[type="checkbox"]:checked').forEach(checkbox => {
-            disponibilidade.push(checkbox.value);
-        });
-        if (nome && disciplinas.length > 0 && nivelEnsino && disponibilidade.length > 0) {
-            professores.push({ nome, disciplinas, nivelEnsino, disponibilidade });
-            localStorage.setItem('professores', JSON.stringify(professores));
-            renderizarProfessores();
-            professorForm.reset();
-        } else {
-            alert('Por favor, preencha todos os campos do professor!');
-        }
+        // ... (código que você já tinha)
     });
-
+    
     cargaHorariaForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const turma = document.getElementById('turmaCarga').value;
-        const professorNome = document.getElementById('professorCarga').value;
-        const disciplina = document.getElementById('disciplinaCarga').value;
-        const aulas = parseInt(document.getElementById('aulasCarga').value);
-        const limiteDiario = parseInt(document.getElementById('limiteDiario').value);
-        const aulaGeminada = document.getElementById('aulaGeminada').checked;
-        
-        if (turma && professorNome && disciplina && !isNaN(aulas) && aulas > 0 && !isNaN(limiteDiario) && limiteDiario > 0) {
-            const professor = professores.find(p => p.nome === professorNome);
-            if (!professor || !professor.disciplinas.includes(disciplina.toLowerCase())) {
-                alert(`Erro: O professor ${professorNome} não está cadastrado para a disciplina ${disciplina}.`);
-                return;
-            }
-
-            const index = cargasHorarias.findIndex(c => c.turma === turma && c.disciplina === disciplina && c.professorNome === professorNome);
-            if (index !== -1) {
-                cargasHorarias[index].aulas = aulas;
-                cargasHorarias[index].limiteDiario = limiteDiario;
-                cargasHorarias[index].aulaGeminada = aulaGeminada;
-            } else {
-                cargasHorarias.push({ turma, professorNome, disciplina: disciplina.toLowerCase(), aulas, limiteDiario, aulaGeminada });
-            }
-            localStorage.setItem('cargasHorarias', JSON.stringify(cargasHorarias));
-            renderizarCargasHorarias();
-            cargaHorariaForm.reset();
-        } else {
-            alert('Por favor, preencha todos os campos da carga horária!');
-        }
+        // ... (código que você já tinha)
     });
 
     document.addEventListener('click', (e) => {
-        if (e.target.classList.contains('remove-btn')) {
-            const index = e.target.dataset.index;
-            const type = e.target.dataset.type;
-            if (type === 'professor') {
-                professores.splice(index, 1);
-                localStorage.setItem('professores', JSON.stringify(professores));
-                renderizarProfessores();
-            } else if (type === 'carga') {
-                cargasHorarias.splice(index, 1);
-                localStorage.setItem('cargasHorarias', JSON.stringify(cargasHorarias));
-                renderizarCargasHorarias();
-            }
-        }
+        // ... (código que você já tinha)
     });
-
-    professorCargaSelect.addEventListener('change', () => {
-        const nomeProfessor = professorCargaSelect.value;
-        if (nomeProfessor) {
-            const professor = professores.find(p => p.nome === nomeProfessor);
-            disciplinaCargaInput.value = professor.disciplinas.join(', ');
-        } else {
-            disciplinaCargaInput.value = '';
-        }
-    });
-
-    ativarAula6FundamentalCheckbox.addEventListener('change', renderizarGrade);
-    ativarAula6MedioCheckbox.addEventListener('change', renderizarGrade);
-
-    gerarGradeIABtn.addEventListener('click', executarAlgoritmoGenetico); // <-- NOVO NOME DO BOTÃO
+    
+    // Event listeners para a grade
+    gerarGradeIABtn.addEventListener('click', iniciarWorkerAlgoritmoGenetico); // <-- Inicia o Web Worker aqui
     novaGradeBtn.addEventListener('click', () => {
         const resultado = gerarGradeInicial();
         gradeHoraria = resultado.grade;
@@ -611,20 +287,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     trocarBtn.addEventListener('click', () => {
-        swapMode = !swapMode;
-        if (swapMode) {
-            trocarBtn.textContent = 'Desativar Troca';
-            statusMessage.textContent = 'Modo de troca ativado. Clique em duas AULAS para trocar os professores.';
-            statusMessage.style.color = 'blue';
-        } else {
-            trocarBtn.textContent = 'Ativar Troca de Professores';
-            statusMessage.textContent = '';
-            if (selectedAula) {
-                selectedAula.classList.remove('aula-selected');
-                selectedCell = null;
-                selectedAula = null;
-            }
-        }
+        // ... (código que você já tinha)
     });
     
     gradeTableBody.addEventListener('click', handleTableClick);
@@ -632,4 +295,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // Inicialização
     renderizarProfessores();
     renderizarCargasHorarias();
+    
+    // ... (o resto das suas funções que não foram alteradas e precisam estar aqui no main.js)
+    function handleTableClick(e) {
+        // ... (coloque o código da sua função handleTableClick aqui)
+    }
+
+    function podeAlocar(professorObj, slotData) {
+        // ... (coloque o código da sua função podeAlocar aqui)
+    }
+
+    function displayFloatingMessage(message, type, targetElement) {
+        // ... (coloque o código da sua função displayFloatingMessage aqui)
+    }
 });
