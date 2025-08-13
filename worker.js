@@ -3,7 +3,7 @@ self.onmessage = function(e) {
     const { professores, cargasHorarias, turmas, parametros, gradeAnterior } = e.data;
     
     // Mapeamento de dias da semana para a correção da disponibilidade
-    const diasSemana = ['nulo', 'segunda', 'terca', 'quarta', 'quinta', 'sexta'];
+    const diasSemana = ['nulo', 'Segunda', 'Terca', 'Quarta', 'Quinta', 'Sexta'];
 
     // FUNÇÕES DO ALGORITMO GENÉTICO
     // Cria um indivíduo (uma grade horária) aleatoriamente
