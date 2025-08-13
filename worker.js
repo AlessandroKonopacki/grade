@@ -192,9 +192,9 @@ function executarAlgoritmoGenetico(params) {
     const { ativarFundamental, ativarMedio } = params;
     
     // --- Novos Parâmetros Otimizados para Velocidade ---
-    const NUM_GERACOES = 100; // Reduzimos de 200 para 100
-    const TAMANHO_POPULACAO = 30; // Reduzimos de 50 para 30
-    const POPULACAO_ELITE = 5; // Reduzimos de 10 para 5
+    const NUM_GERACOES = 50; // Reduzimos de 200 para 100
+    const TAMANHO_POPULACAO = 20; // Reduzimos de 50 para 30
+    const POPULACAO_ELITE = 3; // Reduzimos de 10 para 5
     // --- Fim dos Novos Parâmetros ---
 
     let populacao = [];
