@@ -225,8 +225,9 @@ self.onmessage = function(e) {
     }
 
     // Mutação (troca aleatória de 2 aulas)
-    function mutacao(individuo) {
-        if (Math.random() < parametros.taxaMutacao) {
+    function mutacao(individuo, forca = 1) {
+        // Aumenta a força da mutação para sacudir a grade inicial
+        if (Math.random() < parametros.taxaMutacao * forca) {
             const turmas = Object.keys(individuo.grade);
             if (turmas.length < 2) return;
 
@@ -241,16 +242,13 @@ self.onmessage = function(e) {
             const aula1 = individuo.grade[turma1][`${dia}-${hora}`];
             const aula2 = individuo.grade[turma2][`${dia}-${hora}`];
 
-            // Troca apenas se não houver conflito de professor
             const professor1 = aula1 ? aula1.professor : null;
             const professor2 = aula2 ? aula2.professor : null;
 
             if (professor1 !== professor2) {
-                // Se houver aula1, verifica se o professor1 tem disponibilidade na nova turma e dia
                 const professorObj1 = professor1 ? professores.find(p => p.nome === professor1) : null;
                 const podeTrocar1 = !professorObj1 || professorObj1.disponibilidade.includes(diasSemana[parseInt(dia)]);
 
-                // Se houver aula2, verifica se o professor2 tem disponibilidade na nova turma e dia
                 const professorObj2 = professor2 ? professores.find(p => p.nome === professor2) : null;
                 const podeTrocar2 = !professorObj2 || professorObj2.disponibilidade.includes(diasSemana[parseInt(dia)]);
 
@@ -265,20 +263,34 @@ self.onmessage = function(e) {
     // Inicia o processo de geração da grade
     let populacao = [];
     
+    // CORREÇÃO: Criar múltiplos indivíduos a partir da grade anterior
     if (gradeAnterior) {
         const individuoAnterior = {
             grade: gradeAnterior,
             aulasSobrantes: [], 
         };
         individuoAnterior.fitness = avaliarIndividuo(individuoAnterior, professores);
-        populacao.push(individuoAnterior);
+        populacao.push(individuoAnterior); // Adiciona a grade original
+        
+        // Adiciona versões mutadas da grade anterior
+        for (let i = 0; i < parametros.tamanhoPopulacao - 1; i++) {
+            const individuoMutado = { 
+                grade: JSON.parse(JSON.stringify(gradeAnterior)), // Cria uma cópia profunda
+                aulasSobrantes: []
+            };
+            mutacao(individuoMutado, 5); // Aplica mutação com maior força
+            individuoMutado.fitness = avaliarIndividuo(individuoMutado, professores);
+            populacao.push(individuoMutado);
+        }
+
+    } else {
+        while (populacao.length < parametros.tamanhoPopulacao) {
+            const individuo = criarIndividuo(professores, cargasHorarias, turmas);
+            individuo.fitness = avaliarIndividuo(individuo, professores);
+            populacao.push(individuo);
+        }
     }
-    
-    while (populacao.length < parametros.tamanhoPopulacao) {
-        const individuo = criarIndividuo(professores, cargasHorarias, turmas);
-        individuo.fitness = avaliarIndividuo(individuo, professores);
-        populacao.push(individuo);
-    }
+
     
 
     for (let geracao = 0; geracao < parametros.numGeracoes; geracao++) {
