@@ -1,18 +1,17 @@
-// main.js - Código reestruturado para a nova arquitetura de 3 páginas
+// main.js - Código reestruturado e corrigido para a nova arquitetura
 document.addEventListener('DOMContentLoaded', () => {
 
-    // Funções auxiliares para carregar e salvar dados do localStorage
     const carregarDados = (key) => JSON.parse(localStorage.getItem(key)) || [];
     const salvarDados = (key, data) => localStorage.setItem(key, JSON.stringify(data));
 
-    // --- Lógica para a página de Cadastro de Turmas (turmas.html) ---
+    // Lógica da página de turmas.html
     const turmaForm = document.getElementById('turmaForm');
     const turmasList = document.getElementById('turmasList');
     const concluirTurmasBtn = document.getElementById('concluirTurmasBtn');
 
     if (turmaForm && turmasList) {
         let turmas = carregarDados('turmas');
-        
+
         const renderizarTurmas = () => {
             turmasList.innerHTML = '';
             if (turmas.length === 0) {
@@ -54,7 +53,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
         renderizarTurmas();
 
-        // Lógica do botão "Concluir Cadastro de Turmas"
         if (concluirTurmasBtn) {
             concluirTurmasBtn.addEventListener('click', () => {
                 window.location.href = 'professores_cargas.html';
@@ -62,7 +60,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- Lógica para a página de Cadastro de Professores e Cargas (professores_cargas.html) ---
+    // Lógica da página de professores_cargas.html
     const professorForm = document.getElementById('professorForm');
     const cargaHorariaForm = document.getElementById('cargaHorariaForm');
     const professoresList = document.getElementById('professoresList');
@@ -129,7 +127,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         };
 
-        // Lógica de adicionar professor (CORRIGIDA)
         professorForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const nomeProfessor = document.getElementById('nomeProfessor').value.trim();
@@ -137,7 +134,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const nivelElement = document.querySelector('input[name="nivel"]:checked');
             const disponibilidade = Array.from(document.querySelectorAll('#disponibilidade input:checked')).map(cb => cb.value);
 
-            // Adiciona validação para garantir que um nível seja selecionado e que os campos não estejam vazios
             if (nomeProfessor && disciplinas && nivelElement) {
                 const nivel = nivelElement.value;
                 professores.push({ nome: nomeProfessor, disciplinas, nivel, disponibilidade });
@@ -149,7 +145,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // Lógica de remover professor
         professoresList.addEventListener('click', (e) => {
             if (e.target.classList.contains('remover')) {
                 const index = e.target.dataset.index;
@@ -159,7 +154,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // Lógica de adicionar carga horária
         cargaHorariaForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const professorNome = professorCargaSelect.value;
@@ -183,7 +177,6 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // Lógica de remover carga horária
         cargasHorariasList.addEventListener('click', (e) => {
             if (e.target.classList.contains('remover')) {
                 const index = e.target.dataset.index;
@@ -192,12 +185,10 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // Inicialização
         renderizarProfessores();
         renderizarCargasHorarias();
         popularSelects();
 
-        // Lógica do botão "Concluir Cadastro de Professores"
         if (concluirProfessoresBtn) {
             concluirProfessoresBtn.addEventListener('click', () => {
                 window.location.href = 'grade.html';
@@ -205,36 +196,100 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // --- Lógica para a página da Grade Horária (grade.html) ---
+    // Lógica da página da grade.html
     const gerarGradeIABtn = document.getElementById('gerarGradeIABtn');
+    const gradeTable = document.getElementById('gradeTable');
+    const aulasSobrantesList = document.getElementById('aulasSobrantesList');
+    const novaGradeBtn = document.getElementById('novaGradeBtn');
+    const progressBarContainer = document.querySelector('.progress-bar-container');
+    const progressBar = document.querySelector('.progress-bar');
+    const progressText = document.querySelector('.progress-text');
+
     if (gerarGradeIABtn) {
         let professores = carregarDados('professores');
         let cargasHorarias = carregarDados('cargasHorarias');
         let turmas = carregarDados('turmas');
-        
-        let gradeHoraria = []; 
-        let aulasSobrantes = [];
-        
-        const renderizarGrade = (grade) => {
-            // Lógica para renderizar a tabela
-        };
-        
-        const renderizarAulasSobrantes = (aulas) => {
-            // Lógica para exibir aulas sobrantes
-        };
-        
-        // A lógica do Web Worker também fica aqui
-        gerarGradeIABtn.addEventListener('click', () => {
-            const worker = new Worker('worker.js');
-            worker.postMessage({ professores, cargasHorarias, turmas });
-            // ...e receber mensagens de progresso e resultado
-        });
-        
-        // Lógica para o botão "Nova Grade" e para o modo de troca
-        // ...
 
-        // Inicialização
-        renderizarGrade(gradeHoraria);
-        renderizarAulasSobrantes(aulasSobrantes);
+        const renderizarGrade = (grade) => {
+            gradeTable.querySelector('tbody').innerHTML = '';
+            turmas.forEach(turma => {
+                const row = gradeTable.querySelector('tbody').insertRow();
+                row.insertCell(0).textContent = turma.nome;
+                for (let dia = 1; dia <= 5; dia++) {
+                    const cell = row.insertCell(dia);
+                    for (let hora = 1; hora <= 6; hora++) {
+                        const aula = grade[turma.nome][`${dia}-${hora}`];
+                        if (aula) {
+                            const aulaDiv = document.createElement('div');
+                            aulaDiv.className = 'aula';
+                            aulaDiv.innerHTML = `
+                                <b>${aula.disciplina}</b><br>
+                                <span>${aula.professor}</span>
+                            `;
+                            cell.appendChild(aulaDiv);
+                        }
+                    }
+                }
+            });
+        };
+
+        const renderizarAulasSobrantes = (aulas) => {
+            aulasSobrantesList.innerHTML = '';
+            if (aulas.length === 0) {
+                aulasSobrantesList.innerHTML = '<p>Nenhuma aula sobrante.</p>';
+                return;
+            }
+            aulas.forEach(aula => {
+                const li = document.createElement('li');
+                li.textContent = `${aula.disciplina} - Professor: ${aula.professorNome} - Turma: ${aula.turma}`;
+                aulasSobrantesList.appendChild(li);
+            });
+        };
+
+        gerarGradeIABtn.addEventListener('click', () => {
+            gerarGradeIABtn.disabled = true;
+            novaGradeBtn.disabled = true;
+            
+            progressBarContainer.style.display = 'flex';
+            progressBar.style.width = '0%';
+            progressText.textContent = 'Gerando...';
+
+            const parametros = {
+                numGeracoes: parseInt(document.getElementById('numGeracoes').value, 10),
+                tamanhoPopulacao: parseInt(document.getElementById('tamanhoPopulacao').value, 10),
+                taxaMutacao: parseFloat(document.getElementById('taxaMutacao').value),
+            };
+
+            const worker = new Worker('worker.js');
+            worker.postMessage({ professores, cargasHorarias, turmas, parametros });
+
+            worker.onmessage = (e) => {
+                if (e.data.status === 'progresso') {
+                    progressBar.style.width = `${e.data.progresso}%`;
+                } else if (e.data.status === 'completo') {
+                    progressBar.style.width = '100%';
+                    progressText.textContent = 'Completo!';
+                    renderizarGrade(e.data.grade);
+                    renderizarAulasSobrantes(e.data.aulasSobrantes);
+                    salvarDados('gradeGerada', e.data.grade);
+                    salvarDados('aulasSobrantes', e.data.aulasSobrantes);
+                    gerarGradeIABtn.disabled = false;
+                    novaGradeBtn.disabled = false;
+                }
+            };
+        });
+
+        novaGradeBtn.addEventListener('click', () => {
+            gradeTable.querySelector('tbody').innerHTML = '';
+            aulasSobrantesList.innerHTML = '';
+            progressBarContainer.style.display = 'none';
+        });
+
+        const gradeSalva = carregarDados('gradeGerada');
+        const aulasSalvas = carregarDados('aulasSobrantes');
+        if (gradeSalva && aulasSalvas) {
+            renderizarGrade(gradeSalva);
+            renderizarAulasSobrantes(aulasSalvas);
+        }
     }
 });
