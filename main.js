@@ -9,6 +9,9 @@ document.addEventListener('DOMContentLoaded', () => {
     const professorCargaSelect = document.getElementById('professorCarga');
     const disciplinaCargaInput = document.getElementById('disciplinaCarga');
     const turmaCargaSelect = document.getElementById('turmaCarga');
+    const aulasCargaInput = document.getElementById('aulasCarga');
+    const limiteDiarioInput = document.getElementById('limiteDiario');
+    const aulaGeminadaCheckbox = document.getElementById('aulaGeminada');
     const ativarAula6FundamentalCheckbox = document.getElementById('ativarAula6Fundamental');
     const ativarAula6MedioCheckbox = document.getElementById('ativarAula6Medio');
     const gerarGradeIABtn = document.getElementById('gerarGradeIABtn');
@@ -18,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const statusMessage = document.getElementById('statusMessage');
     const aulasSobrantesDiv = document.getElementById('aulasSobrantes');
     
-    // NOVOS ELEMENTOS DA BARRA DE PROGRESSO
+    // Elementos da barra de progresso
     const progressBarContainer = document.getElementById('progressBarContainer');
     const progressBar = document.getElementById('progressBar');
 
@@ -35,9 +38,9 @@ document.addEventListener('DOMContentLoaded', () => {
     let swapMode = false;
     let selectedCell = null;
     let selectedAula = null;
+    let floatingMessageTimeout;
     
-    // ... (restante do seu código sem alteração até a função iniciarWorkerAlgoritmoGenetico)
-
+    // --- Funções Auxiliares de Lógica e Renderização ---
     function getAulasPeriodo(turma) {
         if (turmasFundamental.includes(turma) && ativarAula6FundamentalCheckbox.checked) {
             return [2, 3, 4, 5, 6];
@@ -47,9 +50,172 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         return aulasPeriodoPadrao;
     }
+
+    function renderizarProfessores() {
+        professoresList.innerHTML = '';
+        professorCargaSelect.innerHTML = '<option value="">Selecione o professor</option>';
+        professores.forEach((prof, index) => {
+            const nivelText = prof.nivelEnsino === 'Fundamental' ? 'Ensino Fundamental' :
+                                prof.nivelEnsino === 'Medio' ? 'Ensino Médio' : 'Ambos';
+            const li = document.createElement('li');
+            li.innerHTML = `
+                <span>${prof.nome} (${prof.disciplinas.join(', ')}) - Nível: ${nivelText} - Disponível: ${prof.disponibilidade.join(', ')}</span>
+                <button class="remove-btn" data-index="${index}" data-type="professor">Remover</button>
+            `;
+            professoresList.appendChild(li);
+
+            const option = document.createElement('option');
+            option.value = prof.nome;
+            option.textContent = prof.nome;
+            professorCargaSelect.appendChild(option);
+        });
+    }
+
+    function renderizarCargasHorarias() {
+        cargaHorariaList.innerHTML = '';
+        cargasHorarias.forEach((carga, index) => {
+            const geminadaText = carga.aulaGeminada ? '(Aulas Consecutivas Ativadas)' : '';
+            const li = document.createElement('li');
+            li.innerHTML = `
+                <span>${carga.turma}: ${carga.professorNome} (${carga.disciplina}) - ${carga.aulas} aulas/sem (Max ${carga.limiteDiario}/dia) ${geminadaText}</span>
+                <button class="remove-btn" data-index="${index}" data-type="carga">Remover</button>
+            `;
+            cargaHorariaList.appendChild(li);
+        });
+    }
+
+    function renderizarGrade() {
+        gradeTableBody.innerHTML = '';
+        const aulasPorTurma = {};
+
+        todasTurmas.forEach(turma => aulasPorTurma[turma] = getAulasPeriodo(turma));
+
+        for (let aula = 2; aula <= 6; aula++) { // Itera por todas as aulas possíveis (2 a 6)
+            const tr = document.createElement('tr');
+            const tdAula = document.createElement('td');
+            tdAula.textContent = `${aula}ª Aula`;
+            tr.appendChild(tdAula);
+        
+            todasTurmas.forEach(turma => {
+                const tdTurma = document.createElement('td');
+                tdTurma.dataset.aula = aula;
+                tdTurma.dataset.turma = turma;
+                tdTurma.classList.add('grade-cell');
+        
+                if (gradeHoraria[diasDaSemana[0]]?.[aula]) { // Verifica se a aula existe para a primeira turma
+                    diasDaSemana.forEach(dia => {
+                        const professorDisciplina = gradeHoraria[dia]?.[aula]?.[turma];
+                        if (professorDisciplina) {
+                            const [nomeProfessor, disciplina] = professorDisciplina.split(' (');
+                            const disciplinaFormatada = disciplina.slice(0, 3);
+                            const p = document.createElement('p');
+                            p.dataset.dia = dia;
+                            p.textContent = `${nomeProfessor} (${disciplinaFormatada})`;
+                            tdTurma.appendChild(p);
+                        }
+                    });
+                }
+                tr.appendChild(tdTurma);
+            });
+            gradeTableBody.appendChild(tr);
+        }
+    }
     
-    // ... (funções de renderização, lógica de swap, etc.)
-    // ... (coloque o restante do seu código aqui, sem as funções do worker)
+    function renderizarAulasSobrantes(aulasRestantes) {
+        aulasSobrantesDiv.innerHTML = '';
+        const aulasFaltantes = aulasRestantes.filter(d => d.aulas > 0);
+        
+        if (aulasFaltantes.length > 0) {
+            const titulo = document.createElement('h4');
+            titulo.textContent = 'Aulas não alocadas:';
+            aulasSobrantesDiv.appendChild(titulo);
+            
+            const lista = document.createElement('ul');
+            aulasFaltantes.forEach(aula => {
+                const li = document.createElement('li');
+                li.textContent = `${aula.professorNome} (${aula.disciplina}) na turma ${aula.turma} - ${aula.aulas} aula(s) restante(s).`;
+                lista.appendChild(li);
+            });
+            aulasSobrantesDiv.appendChild(lista);
+        } else {
+            const mensagem = document.createElement('p');
+            mensagem.textContent = 'Todas as aulas foram alocadas com sucesso.';
+            aulasSobrantesDiv.appendChild(mensagem);
+        }
+    }
+
+    function shuffleArray(array) {
+        for (let i = array.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [array[i], array[j]] = [array[j], array[i]];
+        }
+    }
+    
+    function temAulaConsecutiva(grade, dia, aula, turma, professorNome) {
+        const aulasPeriodoFinal = getAulasPeriodo(turma);
+        const aulaAnterior = aulasPeriodoFinal.find(a => a === aula - 1);
+        const aulaPosterior = aulasPeriodoFinal.find(a => a === aula + 1);
+    
+        if (aulaAnterior && grade[dia]?.[aulaAnterior]?.[turma]?.includes(professorNome)) {
+            return true;
+        }
+        if (aulaPosterior && grade[dia]?.[aulaPosterior]?.[turma]?.includes(professorNome)) {
+            return true;
+        }
+        return false;
+    }
+    
+    function estaEmOutraTurma(grade, dia, aula, professorNome) {
+        return todasTurmas.some(turma => grade[dia]?.[aula]?.[turma]?.includes(professorNome));
+    }
+    
+    function gerarGradeInicial() {
+        let grade = {};
+        const aulasParaDistribuir = JSON.parse(JSON.stringify(cargasHorarias));
+        const aulasPorDiaProfessor = {};
+
+        shuffleArray(aulasParaDistribuir);
+
+        diasDaSemana.forEach(dia => {
+            grade[dia] = {};
+            todasTurmas.forEach(turma => {
+                getAulasPeriodo(turma).forEach(aula => {
+                    grade[dia][aula] = {};
+                });
+            });
+        });
+        
+        aulasParaDistribuir.forEach(carga => {
+            let aulasRestantes = carga.aulas;
+            const professor = professores.find(p => p.nome === carga.professorNome);
+            
+            while (aulasRestantes > 0) {
+                let dia = diasDaSemana[Math.floor(Math.random() * diasDaSemana.length)];
+                let turma = carga.turma;
+                let aulasPeriodo = getAulasPeriodo(turma);
+                shuffleArray(aulasPeriodo);
+                let aula = aulasPeriodo[0];
+                
+                if (!aulasPorDiaProfessor[professor.nome]) aulasPorDiaProfessor[professor.nome] = {};
+                if (!aulasPorDiaProfessor[professor.nome][dia]) aulasPorDiaProfessor[professor.nome][dia] = 0;
+                
+                const podeAlocar = professor &&
+                                    professor.disponibilidade.includes(dia) &&
+                                    !estaEmOutraTurma(grade, dia, aula, professor.nome) &&
+                                    !grade[dia][aula][turma] &&
+                                    aulasPorDiaProfessor[professor.nome][dia] < carga.limiteDiario &&
+                                    (carga.aulaGeminada || !temAulaConsecutiva(grade, dia, aula, turma, professor.nome));
+                                    
+                if (podeAlocar) {
+                    grade[dia][aula][turma] = `${professor.nome} (${carga.disciplina})`;
+                    aulasPorDiaProfessor[professor.nome][dia]++;
+                    aulasRestantes--;
+                }
+            }
+        });
+        
+        return { grade, aulasRestantes: aulasParaDistribuir.filter(a => a.aulas > 0) };
+    }
 
     function iniciarWorkerAlgoritmoGenetico() {
         if (typeof Worker === 'undefined') {
@@ -64,7 +230,6 @@ document.addEventListener('DOMContentLoaded', () => {
         progressBar.style.width = '0%';
         progressBar.textContent = '0%';
 
-        // Envia os dados e parâmetros iniciais para o worker
         myWorker.postMessage({
             tipo: 'iniciar',
             data: {
@@ -110,105 +275,88 @@ document.addEventListener('DOMContentLoaded', () => {
         };
     }
     
-    // As funções que não são do worker, como a de gerar grade aleatória, permanecem aqui
-    function shuffleArray(array) {
-        for (let i = array.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [array[i], array[j]] = [array[j], array[i]];
-        }
-    }
-    
-    function temAulaConsecutiva(grade, dia, aula, turma, professorNome) {
-        const aulasPeriodoFinal = getAulasPeriodo(turma);
-        const aulaAnterior = aulasPeriodoFinal.find(a => a === aula - 1);
-        const aulaPosterior = aulasPeriodoFinal.find(a => a === aula + 1);
-
-        if (aulaAnterior && grade[dia]?.[aulaAnterior]?.[turma]?.includes(professorNome)) {
-            return true;
-        }
-        if (aulaPosterior && grade[dia]?.[aulaPosterior]?.[turma]?.includes(professorNome)) {
-            return true;
-        }
-        return false;
-    }
-    
-    function estaEmOutraTurma(grade, dia, aula, professorNome) {
-        return todasTurmas.some(turma => grade[dia]?.[aula]?.[turma]?.includes(professorNome));
-    }
-    
-    function gerarGradeInicial() {
-        let grade = {};
-        const aulasParaDistribuir = JSON.parse(JSON.stringify(cargasHorarias)); // Clonar para não alterar o original
-        const aulasPorDiaProfessor = {};
-
-        shuffleArray(aulasParaDistribuir);
-
-        diasDaSemana.forEach(dia => {
-            grade[dia] = {};
-            todasTurmas.forEach(turma => {
-                getAulasPeriodo(turma).forEach(aula => {
-                    grade[dia][aula] = {};
-                });
-            });
+    // --- Event Listeners ---
+    professorForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const nome = document.getElementById('nome').value;
+        const disciplinas = document.getElementById('disciplinas').value.split(',').map(d => d.trim().toLowerCase());
+        const nivelEnsino = document.getElementById('nivelEnsino').value;
+        const disponibilidade = [];
+        document.querySelectorAll('#professorForm input[type="checkbox"]:checked').forEach(checkbox => {
+            disponibilidade.push(checkbox.value);
         });
+
+        // MENSAGENS DE DEBUG PARA VER O QUE ESTÁ SENDO CAPTURADO
+        console.log('Tentativa de cadastrar professor.');
+        console.log('Dados capturados:', { nome, disciplinas, nivelEnsino, disponibilidade });
+        console.log('Validade dos campos:', !!nome, disciplinas.length > 0, !!nivelEnsino, disponibilidade.length > 0);
         
-        aulasParaDistribuir.forEach(carga => {
-            let aulasRestantes = carga.aulas;
-            const professor = professores.find(p => p.nome === carga.professorNome);
-            
-            while (aulasRestantes > 0) {
-                let dia = diasDaSemana[Math.floor(Math.random() * diasDaSemana.length)];
-                let turma = carga.turma;
-                let aulasPeriodo = getAulasPeriodo(turma);
-                shuffleArray(aulasPeriodo);
-                let aula = aulasPeriodo[0];
-                
-                if (!aulasPorDiaProfessor[professor.nome]) aulasPorDiaProfessor[professor.nome] = {};
-                if (!aulasPorDiaProfessor[professor.nome][dia]) aulasPorDiaProfessor[professor.nome][dia] = 0;
-                
-                const podeAlocar = professor &&
-                                    professor.disponibilidade.includes(dia) &&
-                                    !estaEmOutraTurma(grade, dia, aula, professor.nome) &&
-                                    !grade[dia][aula][turma] &&
-                                    aulasPorDiaProfessor[professor.nome][dia] < carga.limiteDiario &&
-                                    (carga.aulaGeminada || !temAulaConsecutiva(grade, dia, aula, turma, professor.nome));
-                                    
-                if (podeAlocar) {
-                    grade[dia][aula][turma] = `${professor.nome} (${carga.disciplina})`;
-                    aulasPorDiaProfessor[professor.nome][dia]++;
-                    aulasRestantes--;
+        if (nome && disciplinas.length > 0 && nivelEnsino && disponibilidade.length > 0) {
+            professores.push({ nome, disciplinas, nivelEnsino, disponibilidade });
+            localStorage.setItem('professores', JSON.stringify(professores));
+            renderizarProfessores();
+            professorForm.reset();
+            console.log('Professor cadastrado com sucesso!');
+        } else {
+            alert('Por favor, preencha todos os campos do professor!');
+            console.error('Falha no cadastro: Um ou mais campos estão vazios.');
+        }
+    });
+
+    cargaHorariaForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        const professorNome = professorCargaSelect.value;
+        const turma = turmaCargaSelect.value;
+        const disciplina = disciplinaCargaInput.value;
+        const aulas = parseInt(aulasCargaInput.value, 10);
+        const limiteDiario = parseInt(limiteDiarioInput.value, 10);
+        const aulaGeminada = aulaGeminadaCheckbox.checked;
+
+        if (professorNome && turma && disciplina && !isNaN(aulas) && aulas > 0 && !isNaN(limiteDiario) && limiteDiario > 0) {
+            cargasHorarias.push({ professorNome, turma, disciplina, aulas, limiteDiario, aulaGeminada });
+            localStorage.setItem('cargasHorarias', JSON.stringify(cargasHorarias));
+            renderizarCargasHorarias();
+            cargaHorariaForm.reset();
+        } else {
+            alert('Por favor, preencha todos os campos da carga horária!');
+        }
+    });
+
+    document.addEventListener('click', (e) => {
+        if (e.target.classList.contains('remove-btn')) {
+            const index = e.target.dataset.index;
+            const type = e.target.dataset.type;
+
+            if (confirm(`Tem certeza que deseja remover este ${type}?`)) {
+                if (type === 'professor') {
+                    const profRemovido = professores[index].nome;
+                    professores.splice(index, 1);
+                    cargasHorarias = cargasHorarias.filter(carga => carga.professorNome !== profRemovido);
+                    localStorage.setItem('professores', JSON.stringify(professores));
+                    localStorage.setItem('cargasHorarias', JSON.stringify(cargasHorarias));
+                    renderizarCargasHorarias();
+                    renderizarProfessores();
+                } else if (type === 'carga') {
+                    cargasHorarias.splice(index, 1);
+                    localStorage.setItem('cargasHorarias', JSON.stringify(cargasHorarias));
+                    renderizarCargasHorarias();
                 }
             }
-        });
-        
-        return { grade, aulasRestantes: aulasParaDistribuir.filter(a => a.aulas > 0) };
-    }
-    
-    // ... (resto do código, incluindo event listeners e inicialização)
+        }
+    });
     
     // Event listeners para a grade
     gerarGradeIABtn.addEventListener('click', iniciarWorkerAlgoritmoGenetico);
+
     novaGradeBtn.addEventListener('click', () => {
         const resultado = gerarGradeInicial();
         gradeHoraria = resultado.grade;
         renderizarGrade();
         renderizarAulasSobrantes(resultado.aulasRestantes);
     });
-    
-    // ... (coloque o restante do seu código aqui)
-    
-    function handleTableClick(e) {
-        // ... (coloque o código da sua função handleTableClick aqui)
-    }
 
-    function podeAlocar(professorObj, slotData) {
-        // ... (coloque o código da sua função podeAlocar aqui)
-    }
-
-    function displayFloatingMessage(message, type, targetElement) {
-        // ... (coloque o código da sua função displayFloatingMessage aqui)
-    }
-
+    // ... (coloque o restante do seu código, incluindo handleTableClick e outras funções que você tenha)
+    // Inicialização
     renderizarProfessores();
     renderizarCargasHorarias();
 });
