@@ -260,15 +260,29 @@ document.addEventListener('DOMContentLoaded', () => {
             progressBar.style.width = '0%';
             progressText.textContent = 'Gerando...';
 
+            // ATENÇÃO: Valores reduzidos para melhorar a performance.
+            // Ajuste conforme sua necessidade, sabendo que valores menores
+            // geram resultados mais rápido, mas podem ser menos otimizados.
             const parametros = {
-                numGeracoes: parseInt(document.getElementById('numGeracoes').value, 10),
-                tamanhoPopulacao: parseInt(document.getElementById('tamanhoPopulacao').value, 10),
+                numGeracoes: 50, // Valor original era 1000, reduzido para 50
+                tamanhoPopulacao: 10, // Valor original era 100, reduzido para 10
                 taxaMutacao: parseFloat(document.getElementById('taxaMutacao').value),
             };
 
             const worker = new Worker('worker.js');
 
-         worker.postMessage({ professores, cargasHorarias, turmas, parametros });
+            const gradeAnterior = carregarDados('gradeAnterior');
+            if (gradeAnterior) {
+                const usarGradeAnterior = confirm('Encontrada uma grade anterior. Deseja usar ela como base para a nova grade?');
+                if (usarGradeAnterior) {
+                    worker.postMessage({ professores, cargasHorarias, turmas, parametros, gradeAnterior });
+                } else {
+                    worker.postMessage({ professores, cargasHorarias, turmas, parametros });
+                }
+            } else {
+                worker.postMessage({ professores, cargasHorarias, turmas, parametros });
+            }
+
 
             worker.onmessage = (e) => {
                 if (e.data.status === 'progresso') {
