@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cadastro de Professores e Cargas</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav class="main-nav">
+        <a href="index.html">Página Inicial</a>
+        <a href="turmas.html">Cadastro de Turmas</a>
+        <a href="professores_cargas.html">Professores e Cargas</a>
+        <a href="grade.html">Grade Horária</a>
+    </nav>
+    <div class="container">
+        <h1>Cadastro de Professores e Cargas Horárias</h1>
+
+        <div class="card">
+            <h2>Cadastro de Professores</h2>
+            <form id="professorForm">
+                <label for="nomeProfessor">Nome do Professor:</label>
+                <input type="text" id="nomeProfessor" required>
+                <label for="disciplinas">Disciplinas (separadas por vírgula):</label>
+                <input type="text" id="disciplinas" required>
+                <fieldset>
+                    <legend>Nível de Ensino:</legend>
+                    <label><input type="radio" name="nivel" value="Fundamental" required> Fundamental</label>
+                    <label><input type="radio" name="nivel" value="Medio"> Médio</label>
+                    <label><input type="radio" name="nivel" value="Ambos"> Ambos</label>
+                </fieldset>
+                <fieldset id="disponibilidade">
+                    <legend>Disponibilidade Semanal:</legend>
+                    <label><input type="checkbox" value="segunda"> Segunda</label>
+                    <label><input type="checkbox" value="terca"> Terça</label>
+                    <label><input type="checkbox" value="quarta"> Quarta</label>
+                    <label><input type="checkbox" value="quinta"> Quinta</label>
+                    <label><input type="checkbox" value="sexta"> Sexta</label>
+                </fieldset>
+                <button type="submit">Adicionar Professor</button>
+            </form>
+            <h3>Professores Cadastrados</h3>
+            <ul id="professoresList"></ul>
+        </div>
+        
+        <div class="card">
+            <h2>Cadastro de Carga Horária</h2>
+            <form id="cargaHorariaForm">
+                <label for="professorCargaSelect">Professor:</label>
+                <select id="professorCargaSelect" required></select>
+                <label for="turmaCargaSelect">Turma:</label>
+                <select id="turmaCargaSelect" required></select>
+                <label for="disciplinaCarga">Disciplina:</label>
+                <input type="text" id="disciplinaCarga" required>
+                <label for="aulasPorSemana">Aulas por Semana:</label>
+                <input type="number" id="aulasPorSemana" required min="1" max="10">
+                <label for="limiteAulas">Limite de Aulas por Dia:</label>
+                <input type="number" id="limiteAulas" required min="1" max="6">
+                <label>
+                    <input type="checkbox" id="aulasGeminadas"> Aulas Geminadas
+                </label>
+                <button type="submit">Adicionar Carga Horária</button>
+            </form>
+            <h3>Cargas Horárias Cadastradas</h3>
+            <ul id="cargasHorariasList"></ul>
+        </div>
+    </div>
+    
+    <div class="btn-group">
+        <button id="concluirProfessoresBtn">Concluir Cadastro de Professores</button>
+    </div>
+    <script src="main.js"></script>
+</body>
+</html>
