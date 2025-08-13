@@ -62,13 +62,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const cargasHorariasList = document.getElementById('cargasHorariasList');
     const professorCargaSelect = document.getElementById('professorCargaSelect');
     const turmaCargaSelect = document.getElementById('turmaCargaSelect');
+    const disciplinasInput = document.getElementById('disciplinas');
 
     if (professorForm && cargaHorariaForm) {
         let professores = carregarDados('professores');
         let cargasHorarias = carregarDados('cargasHorarias');
         let turmas = carregarDados('turmas');
 
-        // Renderiza as listas de professores
         const renderizarProfessores = () => {
             professoresList.innerHTML = '';
             if (professores.length === 0) {
@@ -86,7 +86,6 @@ document.addEventListener('DOMContentLoaded', () => {
             salvarDados('professores', professores);
         };
 
-        // Renderiza as listas de cargas horárias
         const renderizarCargasHorarias = () => {
             cargasHorariasList.innerHTML = '';
             if (cargasHorarias.length === 0) {
@@ -104,7 +103,6 @@ document.addEventListener('DOMContentLoaded', () => {
             salvarDados('cargasHorarias', cargasHorarias);
         };
         
-        // Popula os selects para professor e turma
         const popularSelects = () => {
             professorCargaSelect.innerHTML = '<option value="">Selecione um professor</option>';
             professores.forEach(p => {
@@ -123,31 +121,61 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         };
 
-        // Event Listeners para os formulários
+        // Lógica de adicionar professor (re-implementada)
         professorForm.addEventListener('submit', (e) => {
             e.preventDefault();
-            // Lógica para adicionar professor...
-            renderizarProfessores();
-            popularSelects();
-        });
+            const nomeProfessor = document.getElementById('nomeProfessor').value.trim();
+            const disciplinas = document.getElementById('disciplinas').value.trim();
+            const nivel = document.querySelector('input[name="nivel"]:checked').value;
+            const disponibilidade = Array.from(document.querySelectorAll('#disponibilidade input:checked')).map(cb => cb.value);
 
-        professoresList.addEventListener('click', (e) => {
-            if (e.target.classList.contains('remover')) {
-                // Lógica para remover professor...
+            if (nomeProfessor && disciplinas) {
+                professores.push({ nome: nomeProfessor, disciplinas, nivel, disponibilidade });
+                professorForm.reset();
                 renderizarProfessores();
                 popularSelects();
             }
         });
 
-        cargaHorariaForm.addEventListener('submit', (e) => {
-            e.preventDefault();
-            // Lógica para adicionar carga horária...
-            renderizarCargasHorarias();
+        // Lógica de remover professor
+        professoresList.addEventListener('click', (e) => {
+            if (e.target.classList.contains('remover')) {
+                const index = e.target.dataset.index;
+                professores.splice(index, 1);
+                renderizarProfessores();
+                popularSelects();
+            }
         });
 
+        // Lógica de adicionar carga horária (re-implementada)
+        cargaHorariaForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const professorNome = professorCargaSelect.value;
+            const turma = turmaCargaSelect.value;
+            const disciplina = document.getElementById('disciplinaCarga').value;
+            const aulasPorSemana = parseInt(document.getElementById('aulasPorSemana').value, 10);
+            const limiteAulas = parseInt(document.getElementById('limiteAulas').value, 10);
+            const aulasGeminadas = document.getElementById('aulasGeminadas').checked;
+        
+            if (professorNome && turma && disciplina && aulasPorSemana > 0 && limiteAulas > 0) {
+                cargasHorarias.push({
+                    professorNome,
+                    turma,
+                    disciplina,
+                    aulasPorSemana,
+                    limiteAulas,
+                    aulasGeminadas
+                });
+                cargaHorariaForm.reset();
+                renderizarCargasHorarias();
+            }
+        });
+
+        // Lógica de remover carga horária
         cargasHorariasList.addEventListener('click', (e) => {
             if (e.target.classList.contains('remover')) {
-                // Lógica para remover carga horária...
+                const index = e.target.dataset.index;
+                cargasHorarias.splice(index, 1);
                 renderizarCargasHorarias();
             }
         });
@@ -165,7 +193,7 @@ document.addEventListener('DOMContentLoaded', () => {
         let cargasHorarias = carregarDados('cargasHorarias');
         let turmas = carregarDados('turmas');
         
-        let gradeHoraria = []; // ou carregar do localStorage
+        let gradeHoraria = []; 
         let aulasSobrantes = [];
         
         // As funções de renderização da grade, troca de professores, etc.
@@ -180,7 +208,6 @@ document.addEventListener('DOMContentLoaded', () => {
         
         // A lógica do Web Worker também fica aqui
         gerarGradeIABtn.addEventListener('click', () => {
-            // Lógica para iniciar o worker...
             const worker = new Worker('worker.js');
             worker.postMessage({ professores, cargasHorarias, turmas });
             // ...e receber mensagens de progresso e resultado
