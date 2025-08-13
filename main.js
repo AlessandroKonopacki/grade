@@ -82,9 +82,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 return;
             }
             professores.forEach((professor, index) => {
+                // CORREÇÃO: Adicionando a exibição da disponibilidade
+                const disponibilidade = professor.disponibilidade.length > 0
+                    ? `Disponibilidade: ${professor.disponibilidade.join(', ')}`
+                    : 'Disponibilidade: Nenhuma selecionada';
+
                 const li = document.createElement('li');
                 li.innerHTML = `
-                    ${professor.nome} - Disciplinas: ${professor.disciplinas} (${professor.nivel})
+                    ${professor.nome} - Disciplinas: ${professor.disciplinas} (${professor.nivel}) <br>
+                    <span>${disponibilidade}</span>
                     <button class="remover" data-index="${index}">Remover</button>
                 `;
                 professoresList.appendChild(li);
@@ -262,7 +268,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const worker = new Worker('worker.js');
             
-            // Lógica para carregar a grade anterior
             const gradeAnterior = carregarDados('gradeAnterior');
             if (gradeAnterior) {
                 const usarGradeAnterior = confirm('Encontrada uma grade anterior. Deseja usar ela como base para a nova grade?');
@@ -285,7 +290,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     renderizarGrade(e.data.grade);
                     renderizarAulasSobrantes(e.data.aulasSobrantes);
                     
-                    // Salvar a nova melhor grade para a próxima execução
                     salvarDados('gradeAnterior', e.data.grade); 
                     salvarDados('aulasSobrantesAnterior', e.data.aulasSobrantes);
 
