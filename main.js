@@ -23,6 +23,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Elementos da barra de progresso
     const progressBarContainer = document.getElementById('progressBarContainer');
     const progressBar = document.getElementById('progressBar');
+    const gradeTable = document.getElementById('gradeTable');
 
     // Estruturas de dados globais
     const diasDaSemana = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta'];
@@ -36,7 +37,6 @@ document.addEventListener('DOMContentLoaded', () => {
     let gradeHoraria = {};
     let swapMode = false;
     let selectedCell = null;
-    let selectedAula = null;
     
     // --- Funções Auxiliares de Lógica e Renderização ---
     function getAulasPeriodo(turma) {
@@ -80,6 +80,43 @@ document.addEventListener('DOMContentLoaded', () => {
             `;
             cargaHorariaList.appendChild(li);
         });
+    }
+    
+    function recalcularAulasSobrantes(grade) {
+        const aulasOcupadas = {};
+        cargasHorarias.forEach(carga => {
+            const key = `${carga.professorNome}-${carga.turma}-${carga.disciplina}`;
+            aulasOcupadas[key] = {
+                professorNome: carga.professorNome,
+                turma: carga.turma,
+                disciplina: carga.disciplina,
+                aulas: carga.aulas,
+                alocadas: 0
+            };
+        });
+    
+        diasDaSemana.forEach(dia => {
+            getAulasPeriodo('6º ano').forEach(aula => { // Assume-se que o número de aulas é consistente entre as turmas
+                todasTurmas.forEach(turma => {
+                    const professorDisciplina = grade[dia]?.[aula]?.[turma];
+                    if (professorDisciplina) {
+                        const [nomeProfessor, disciplina] = professorDisciplina.split(' (');
+                        const disciplinaFormatada = disciplina.substring(0, disciplina.length - 1);
+                        const key = `${nomeProfessor}-${turma}-${disciplinaFormatada}`;
+                        if (aulasOcupadas[key]) {
+                            aulasOcupadas[key].alocadas++;
+                        }
+                    }
+                });
+            });
+        });
+    
+        const aulasSobrantes = Object.values(aulasOcupadas).map(item => ({
+            ...item,
+            aulas: item.aulas - item.alocadas
+        })).filter(item => item.aulas > 0);
+    
+        return aulasSobrantes;
     }
     
     function renderizarAulasSobrantes(aulasRestantes) {
@@ -135,8 +172,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function checarConflito(grade) {
         const conflitos = [];
-        const professorOcupacao = {};
-
+        
         diasDaSemana.forEach(dia => {
             const aulasPossiveis = [2, 3, 4, 5, 6];
             aulasPossiveis.forEach(aula => {
@@ -249,13 +285,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 statusMessage.textContent = `Gerando grade... Geração ${geracao}/${numGeracoes}. Melhor fitness: ${melhorFitness}`;
             } else if (type === 'concluido') {
                 gradeHoraria = melhorGrade;
+                const aulasRestantesFinal = recalcularAulasSobrantes(gradeHoraria);
+                
                 renderizarGrade();
-                renderizarAulasSobrantes(aulasRestantes);
+                renderizarAulasSobrantes(aulasRestantesFinal);
 
                 progressBar.style.width = '100%';
                 progressBar.textContent = '100%';
 
-                if (aulasRestantes.length === 0) {
+                if (aulasRestantesFinal.length === 0) {
                     statusMessage.textContent = 'Grade horária gerada com sucesso!';
                     statusMessage.style.color = 'green';
                 } else {
@@ -271,12 +309,9 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     
     function renderizarGrade() {
-        const gradeTable = document.getElementById('gradeTable');
-        const gradeTableBody = gradeTable.querySelector('tbody');
         gradeTable.innerHTML = '';
         
         const conflitos = checarConflito(gradeHoraria);
-        console.log('Conflitos detectados:', conflitos);
         
         // Cabeçalho da tabela
         const thead = document.createElement('thead');
@@ -299,12 +334,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const tbody = document.createElement('tbody');
         
         diasDaSemana.forEach(dia => {
-            const aulasPossiveis = [2, 3, 4, 5, 6];
+            const aulasPossiveis = getAulasPeriodo(turmasFundamental[0]);
             
             aulasPossiveis.forEach((aula, index) => {
                 const tr = document.createElement('tr');
 
-                // Célula do dia da semana com rowspan
                 if (index === 0) {
                     const tdDia = document.createElement('td');
                     tdDia.textContent = dia;
@@ -313,7 +347,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     tr.appendChild(tdDia);
                 }
 
-                // Células das turmas
                 todasTurmas.forEach(turma => {
                     const tdConteudo = document.createElement('td');
                     tdConteudo.classList.add('grade-cell');
@@ -412,9 +445,54 @@ document.addEventListener('DOMContentLoaded', () => {
         const resultado = gerarGradeInicial();
         gradeHoraria = resultado.grade;
         renderizarGrade();
-        renderizarAulasSobrantes(resultado.aulasRestantes);
+        const aulasRestantesFinal = recalcularAulasSobrantes(gradeHoraria);
+        renderizarAulasSobrantes(aulasRestantesFinal);
     });
-
+    
+    trocarBtn.addEventListener('click', () => {
+        swapMode = !swapMode;
+        if (swapMode) {
+            trocarBtn.textContent = 'Modo Troca Ativado';
+            trocarBtn.style.backgroundColor = '#28a745';
+        } else {
+            trocarBtn.textContent = 'Ativar Troca de Professores';
+            trocarBtn.style.backgroundColor = '#007bff';
+            selectedCell = null;
+        }
+    });
+    
+    gradeTable.addEventListener('click', (e) => {
+        if (!swapMode) return;
+        
+        let cell = e.target.closest('.grade-cell');
+        if (!cell) return;
+        
+        if (!selectedCell) {
+            selectedCell = cell;
+            selectedCell.style.border = '2px solid blue';
+        } else if (selectedCell === cell) {
+            selectedCell.style.border = '1px solid #ccc';
+            selectedCell = null;
+        } else {
+            const cell1Data = selectedCell.dataset;
+            const cell2Data = cell.dataset;
+            
+            const cell1Content = gradeHoraria[cell1Data.dia]?.[cell1Data.aula]?.[cell1Data.turma];
+            const cell2Content = gradeHoraria[cell2Data.dia]?.[cell2Data.aula]?.[cell2Data.turma];
+            
+            // Troca o conteúdo na gradeHoraria
+            gradeHoraria[cell1Data.dia][cell1Data.aula][cell1Data.turma] = cell2Content;
+            gradeHoraria[cell2Data.dia][cell2Data.aula][cell2Data.turma] = cell1Content;
+            
+            // Limpa as células selecionadas e re-renderiza
+            renderizarGrade();
+            selectedCell = null;
+            swapMode = false;
+            trocarBtn.textContent = 'Ativar Troca de Professores';
+            trocarBtn.style.backgroundColor = '#007bff';
+        }
+    });
+    
     // Inicialização
     renderizarProfessores();
     renderizarCargasHorarias();
