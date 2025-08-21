@@ -80,6 +80,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 const li = document.createElement('li');
                 li.innerHTML = `
                     ${prof.nome} (${prof.disciplinas.join(', ')})
+                    <br> Disponibilidade: ${prof.disponibilidade.join(', ')}
+                    <br> Nível: ${prof.nivel}
                     <button class="remover" data-index="${index}">Remover</button>
                 `;
                 professoresList.appendChild(li);
@@ -128,16 +130,19 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             const nomeProfessor = document.getElementById('nomeProfessor').value;
             const disciplinasStr = document.getElementById('disciplinas').value;
-            const disponibilidadeStr = document.getElementById('disponibilidade').value;
+            // ATUALIZAÇÃO: Pega os valores dos checkboxes
+            const disponibilidade = Array.from(document.querySelectorAll('input[name="disponibilidade"]:checked'))
+                                      .map(cb => cb.value);
             const nivelEnsino = document.querySelector('input[name="nivel"]:checked').value;
             
-            if (nomeProfessor && disciplinasStr && disponibilidadeStr && nivelEnsino) {
+            if (nomeProfessor && disciplinasStr && disponibilidade.length > 0 && nivelEnsino) {
                 const disciplinas = disciplinasStr.split(',').map(d => d.trim());
-                const disponibilidade = disponibilidadeStr.split(',').map(d => d.trim());
                 professores.push({ nome: nomeProfessor, disciplinas, disponibilidade, nivel: nivelEnsino });
                 professorForm.reset();
                 renderizarProfessores();
                 popularSelects();
+            } else {
+                alert('Por favor, preencha todos os campos, incluindo a disponibilidade.');
             }
         });
 
@@ -163,6 +168,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 cargasHorarias.push({ professor, turma, disciplina, aulasPorSemana, limiteAulas, aulasGeminadas });
                 cargaHorariaForm.reset();
                 renderizarCargasHorarias();
+            } else {
+                alert('Por favor, preencha todos os campos de carga horária.');
             }
         });
 
@@ -186,7 +193,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Lógica da página grade.html
+    // Lógica da página grade.html (SEM ALTERAÇÕES)
     const gerarGradeIABtn = document.getElementById('gerarGradeIABtn');
     const novaGradeBtn = document.getElementById('novaGradeBtn');
     const gradeTable = document.getElementById('gradeTable');

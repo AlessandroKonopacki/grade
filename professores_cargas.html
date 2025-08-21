@@ -23,8 +23,14 @@
                 <input type="text" id="nomeProfessor" required>
                 <label for="disciplinas">Disciplinas (separadas por vírgula):</label>
                 <input type="text" id="disciplinas" required>
-                <label for="disponibilidade">Disponibilidade (ex: Segunda,Terça):</label>
-                <input type="text" id="disponibilidade" required>
+                <fieldset>
+                    <legend>Disponibilidade:</legend>
+                    <label><input type="checkbox" name="disponibilidade" value="Segunda"> Segunda</label>
+                    <label><input type="checkbox" name="disponibilidade" value="Terça"> Terça</label>
+                    <label><input type="checkbox" name="disponibilidade" value="Quarta"> Quarta</label>
+                    <label><input type="checkbox" name="disponibilidade" value="Quinta"> Quinta</label>
+                    <label><input type="checkbox" name="disponibilidade" value="Sexta"> Sexta</label>
+                </fieldset>
                 <fieldset>
                     <legend>Nível de Ensino:</legend>
                     <label><input type="radio" name="nivel" value="Fundamental" required> Fundamental</label>
