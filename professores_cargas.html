@@ -23,19 +23,13 @@
                 <input type="text" id="nomeProfessor" required>
                 <label for="disciplinas">Disciplinas (separadas por vírgula):</label>
                 <input type="text" id="disciplinas" required>
+                <label for="disponibilidade">Disponibilidade (ex: Segunda,Terça):</label>
+                <input type="text" id="disponibilidade" required>
                 <fieldset>
                     <legend>Nível de Ensino:</legend>
                     <label><input type="radio" name="nivel" value="Fundamental" required> Fundamental</label>
                     <label><input type="radio" name="nivel" value="Medio"> Médio</label>
-                    <label><input type="radio" name="nivel" value="Ambos"> Ambos</label>
-                </fieldset>
-                <fieldset id="disponibilidade">
-                    <legend>Disponibilidade Semanal:</legend>
-                    <label><input type="checkbox" value="segunda"> Segunda</label>
-                    <label><input type="checkbox" value="terca"> Terça</label>
-                    <label><input type="checkbox" value="quarta"> Quarta</label>
-                    <label><input type="checkbox" value="quinta"> Quinta</label>
-                    <label><input type="checkbox" value="sexta"> Sexta</label>
+                    <label><input type="radio" name="nivel" value="Tecnico"> Técnico</label>
                 </fieldset>
                 <button type="submit">Adicionar Professor</button>
             </form>
@@ -67,7 +61,7 @@
     </div>
     
     <div class="btn-group">
-        <button id="concluirProfessoresBtn">Concluir Cadastro de Professores</button>
+        <button id="concluirProfessoresBtn">Concluir Professores e Cargas</button>
     </div>
     <script src="main.js"></script>
 </body>
