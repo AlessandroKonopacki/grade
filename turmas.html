@@ -7,29 +7,63 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
+    <!-- HEADER -->
+    <header>
+        <h1>🏫 Cadastro de Turmas</h1>
+    </header>
+
+    <!-- NAV -->
     <nav class="main-nav">
-    <a href="index.html">Página Inicial</a>
-    <a href="turmas.html">Cadastro de Turmas</a>
-    <a href="professores_cargas.html">Professores e Cargas</a>
-    <a href="grade.html">Grade Horária</a>
-</nav>
-    <div class="container">
-        <h1>Cadastro de Turmas</h1>
-        <div class="card">
+        <a href="index.html">Início</a>
+        <a href="turmas.html">Turmas</a>
+        <a href="professores_cargas.html">Professores</a>
+        <a href="grade.html">Grade</a>
+    </nav>
+
+    <!-- MAIN -->
+    <main class="container">
+
+        <!-- FORMULÁRIO -->
+        <section class="card">
             <h2>Adicionar Turma</h2>
+
             <form id="turmaForm">
-                <label for="nomeTurma">Nome da Turma:</label>
-                <input type="text" id="nomeTurma" required>
-                <button type="submit">Adicionar Turma</button>
+                <label for="nomeTurma">Nome da turma:</label>
+                <input 
+                    type="text" 
+                    id="nomeTurma" 
+                    placeholder="Ex: 6º Ano A"
+                    required
+                >
+
+                <div class="btn-group">
+                    <button type="submit">Adicionar</button>
+                    <button type="reset">Limpar</button>
+                </div>
             </form>
-            <h3>Turmas Cadastradas</h3>
+        </section>
+
+        <!-- LISTA -->
+        <section class="card">
+            <h2>Turmas cadastradas</h2>
             <ul id="turmasList"></ul>
-        </div>
-        
-        <div class="btn-group">
-            <button id="concluirTurmasBtn">Concluir Cadastro de Turmas</button>
-        </div>
-    </div>
-    <script src="turmas.js"></script>
+        </section>
+
+        <!-- AÇÃO FINAL -->
+        <section class="card">
+            <h2>Finalizar</h2>
+            <p>Após cadastrar todas as turmas, prossiga para a próxima etapa.</p>
+
+            <div class="btn-group">
+                <button id="concluirTurmasBtn">
+                    Concluir cadastro
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <script src="js/turmas.js"></script>
 </body>
 </html>

@@ -3,74 +3,126 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cadastro de Professores e Cargas</title>
+    <title>Professores e Cargas</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <nav class="main-nav">
-        <a href="index.html">Página Inicial</a>
-        <a href="turmas.html">Cadastro de Turmas</a>
-        <a href="professores_cargas.html">Professores e Cargas</a>
-        <a href="grade2.html">Grade Horária</a>
-    </nav>
-    <div class="container">
-        <h1>Cadastro de Professores e Cargas Horárias</h1>
 
-        <div class="card">
+    <!-- HEADER -->
+    <header>
+        <h1>👨‍🏫 Professores e Cargas Horárias</h1>
+    </header>
+
+    <!-- NAV -->
+    <nav class="main-nav">
+        <a href="index.html">Início</a>
+        <a href="turmas.html">Turmas</a>
+        <a href="professores_cargas.html">Professores</a>
+        <a href="grade.html">Grade</a>
+    </nav>
+
+    <!-- MAIN -->
+    <main class="container">
+
+        <!-- PROFESSORES -->
+        <section class="card">
             <h2>Cadastro de Professores</h2>
+
             <form id="professorForm">
-                <label for="nomeProfessor">Nome do Professor:</label>
-                <input type="text" id="nomeProfessor" required>
-                <label for="disciplinas">Disciplinas (separadas por vírgula):</label>
-                <input type="text" id="disciplinas" required>
+
+                <label for="nomeProfessor">Nome:</label>
+                <input 
+                    type="text" 
+                    id="nomeProfessor" 
+                    placeholder="Ex: João da Silva"
+                    required
+                >
+
+                <label for="disciplinas">Disciplinas:</label>
+                <input 
+                    type="text" 
+                    id="disciplinas"
+                    placeholder="Ex: Matemática, Física"
+                    required
+                >
+
                 <fieldset>
-                    <legend>Disponibilidade:</legend>
+                    <legend>Disponibilidade</legend>
                     <label><input type="checkbox" name="disponibilidade" value="Segunda"> Segunda</label>
                     <label><input type="checkbox" name="disponibilidade" value="Terça"> Terça</label>
                     <label><input type="checkbox" name="disponibilidade" value="Quarta"> Quarta</label>
                     <label><input type="checkbox" name="disponibilidade" value="Quinta"> Quinta</label>
                     <label><input type="checkbox" name="disponibilidade" value="Sexta"> Sexta</label>
                 </fieldset>
+
                 <fieldset>
-                    <legend>Nível de Ensino:</legend>
-                    <label><input type="checkbox" name="nivel" value="Fundamental" required> Fundamental</label>
+                    <legend>Nível de Ensino</legend>
+                    <label><input type="checkbox" name="nivel" value="Fundamental"> Fundamental</label>
                     <label><input type="checkbox" name="nivel" value="Medio"> Médio</label>
                     <label><input type="checkbox" name="nivel" value="Tecnico"> Técnico</label>
                 </fieldset>
+
                 <button type="submit">Adicionar Professor</button>
             </form>
-            <h3>Professores Cadastrados</h3>
+
+            <h3>Professores cadastrados</h3>
             <ul id="professoresList"></ul>
-        </div>
-        
-        <div class="card">
+        </section>
+
+        <!-- CARGA HORÁRIA -->
+        <section class="card">
             <h2>Cadastro de Carga Horária</h2>
+
             <form id="cargaHorariaForm">
+
                 <label for="professorCargaSelect">Professor:</label>
                 <select id="professorCargaSelect" required></select>
+
                 <label for="turmaCargaSelect">Turma:</label>
                 <select id="turmaCargaSelect" required></select>
-                <label for="disciplinaCarga">Disciplina:</label>
-                <input type="text" id="disciplinaCarga" required>
-                <label for="aulasPorSemana">Aulas por Semana:</label>
-                <input type="number" id="aulasPorSemana" required min="1" max="10">
-                <label for="limiteAulas">Limite de Aulas por Dia:</label>
-                <input type="number" id="limiteAulas" required min="1" max="6">
-                <label>
-                    <input type="checkbox" id="aulasGeminadas"> Aulas Geminadas
-                </label>
-                <button type="submit">Adicionar Carga Horária</button>
-            </form>
-            <h3>Cargas Horárias Cadastradas</h3>
-            <ul id="cargasHorariasList"></ul>
-        </div>
-    </div>
-    
-    <<div class="btn-group">
-    <button id="concluirProfessoresBtn">Concluir Professores e Cargas</button>
-</div>
 
-<script src="utils.js"></script>
-<script src="professores.js"></script>
+                <label for="disciplinaCarga">Disciplina:</label>
+                <input 
+                    type="text" 
+                    id="disciplinaCarga"
+                    placeholder="Ex: Matemática"
+                    required
+                >
+
+                <label for="aulasPorSemana">Aulas por semana:</label>
+                <input type="number" id="aulasPorSemana" min="1" max="10" required>
+
+                <label for="limiteAulas">Limite por dia:</label>
+                <input type="number" id="limiteAulas" min="1" max="6" required>
+
+                <label>
+                    <input type="checkbox" id="aulasGeminadas">
+                    Aulas geminadas
+                </label>
+
+                <button type="submit">Adicionar Carga</button>
+            </form>
+
+            <h3>Cargas cadastradas</h3>
+            <ul id="cargasHorariasList"></ul>
+        </section>
+
+        <!-- FINALIZAR -->
+        <section class="card">
+            <h2>Finalizar</h2>
+            <p>Após cadastrar tudo, prossiga para gerar a grade.</p>
+
+            <div class="btn-group">
+                <button id="concluirProfessoresBtn">
+                    Concluir cadastro
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <script src="js/utils.js"></script>
+    <script src="js/professores.js"></script>
+
 </body>
 </html>

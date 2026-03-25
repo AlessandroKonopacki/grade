@@ -7,34 +7,55 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
+    <!-- HEADER -->
+    <header>
+        <h1>📚 Gerador de Grade Horária</h1>
+    </header>
+
+    <!-- NAV -->
     <nav class="main-nav">
-        <a href="index.html">Página Inicial</a>
-        <a href="turmas.html">Cadastro de Turmas</a>
-        <a href="professores_cargas.html">Professores e Cargas</a>
-        <a href="grade.html">Grade Horária</a>
+        <a href="index.html">Início</a>
+        <a href="turmas.html">Turmas</a>
+        <a href="professores_cargas.html">Professores</a>
+        <a href="grade.html">Grade</a>
     </nav>
-    <div class="container">
-        <h1>Bem-vindo ao Gerador de Grade Horária</h1>
-        <p>
-            Este sistema foi projetado para ajudá-lo a criar grades horárias para escolas de forma eficiente,
-            utilizando um algoritmo genético para otimizar o processo e atender às restrições dos professores e turmas.
-        </p>
 
-        <div class="card">
-            <h2>Como Usar</h2>
+    <!-- MAIN -->
+    <main class="container">
+
+        <!-- INTRODUÇÃO -->
+        <section>
+            <h2>Bem-vindo</h2>
+            <p>
+                Este sistema foi projetado para ajudá-lo a criar grades horárias para escolas de forma eficiente,
+                utilizando um algoritmo genético para otimizar o processo e atender às restrições dos professores e turmas.
+            </p>
+        </section>
+
+        <!-- COMO USAR -->
+        <section class="card">
+            <h2>Como usar</h2>
             <ol>
-                <li>Vá para a página Cadastro de Turmas para adicionar todas as turmas da sua escola.</li>
-                <li>Em seguida, acesse Professores e Cargas, para cadastrar os professores e suas respectivas cargas horárias.</li>
-                <li>Por fim, clique em Grade Horária para gerar a grade automaticamente.</li>
+                <li>Acesse <strong>Turmas</strong> e cadastre todas as turmas.</li>
+                <li>Vá em <strong>Professores</strong> e defina as cargas horárias.</li>
+                <li>Por fim, entre em <strong>Grade</strong> para gerar automaticamente.</li>
             </ol>
-        </div>
+        </section>
 
-        <div class="card center-image">
-            <img src="img/bandeira_cidade.png" alt="Bandeira do município de Reserva, Paraná" style="width: 300px;">
-            <p>Bandeira do município de Reserva, Paraná</p>
-            <p>Local de criação do site!</p>
-        </div>
-    </div>
-    <script src="main.js"></script>
+        <!-- IMAGEM -->
+        <section class="card center-image">
+            <figure>
+                <img src="img/bandeira_cidade.png" alt="Bandeira do município de Reserva, Paraná">
+                <figcaption>
+                    Bandeira do município de Reserva, Paraná<br>
+                    Local de criação do sistema
+                </figcaption>
+            </figure>
+        </section>
+
+    </main>
+
+    <script src="js/main.js"></script>
 </body>
 </html>

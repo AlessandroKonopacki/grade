@@ -2,60 +2,81 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Grade Horária</title>
+    <title>Gerar Grade</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<nav class="main-nav">
-    <a href="index.html">Página Inicial</a>
-    <a href="turmas.html">Cadastro de Turmas</a>
-    <a href="professores_cargas.html">Professores e Cargas</a>
-    <a href="grade.html">Grade Horária</a>
-</nav>
+    <!-- HEADER -->
+    <header>
+        <h1>📊 Gerador de Grade Horária</h1>
+    </header>
 
-<div class="container">
-    <h1>Gerar Grade Horária</h1>
+    <!-- NAV -->
+    <nav class="main-nav">
+        <a href="index.html">Início</a>
+        <a href="turmas.html">Turmas</a>
+        <a href="professores_cargas.html">Professores</a>
+        <a href="grade.html">Grade</a>
+    </nav>
 
-    <!-- CONFIGURAÇÃO -->
-    <div class="card">
-        <h2>Parâmetros</h2>
+    <!-- MAIN -->
+    <main class="container">
 
-        <label>Gerações:</label>
-        <input type="number" id="numGeracoes" value="100">
+        <!-- CONFIGURAÇÃO -->
+        <section class="card">
+            <h2>Parâmetros do Algoritmo</h2>
 
-        <label>População:</label>
-        <input type="number" id="tamanhoPopulacao" value="50">
+            <label for="numGeracoes">Número de gerações:</label>
+            <input type="number" id="numGeracoes" value="100" min="10">
 
-        <label>Taxa de Mutação:</label>
-        <input type="number" id="taxaMutacao" step="0.01" value="0.1">
-    </div>
+            <label for="tamanhoPopulacao">Tamanho da população:</label>
+            <input type="number" id="tamanhoPopulacao" value="50" min="10">
 
-    <!-- BOTÕES -->
-    <div class="btn-group">
-        <button id="gerarGradeIABtn">Gerar Grade</button>
-        <button id="novaGradeBtn">Limpar</button>
-    </div>
+            <label for="taxaMutacao">Taxa de mutação:</label>
+            <input type="number" id="taxaMutacao" step="0.01" value="0.1" min="0" max="1">
 
-    <!-- PROGRESSO -->
-    <div class="progress-bar-container" style="display:none;">
-        <div class="progress-bar"></div>
-        <span class="progress-text"></span>
-    </div>
+            <p class="hint">
+                Quanto maior o número de gerações, melhor a qualidade da grade (porém mais demorado).
+            </p>
+        </section>
 
-    <!-- RESULTADO -->
-    <div id="gradeContainer"></div>
+        <!-- AÇÕES -->
+        <section class="card">
+            <h2>Ações</h2>
 
-    <!-- SOBRAS -->
-    <div class="card">
-        <h2>Aulas não alocadas</h2>
-        <ul id="aulasSobrantesList"></ul>
-    </div>
-</div>
+            <div class="btn-group">
+                <button id="gerarGradeIABtn">Gerar Grade</button>
+                <button id="novaGradeBtn">Limpar</button>
+            </div>
+        </section>
 
-<!-- JS -->
-<script src="js/utils.js"></script>
-<script src="js/grade.js"></script>
+        <!-- PROGRESSO -->
+        <section class="card progress-container hidden">
+            <h2>Processando</h2>
+
+            <div class="progress-bar-container">
+                <div class="progress-bar"></div>
+                <span class="progress-text"></span>
+            </div>
+        </section>
+
+        <!-- RESULTADO -->
+        <section class="card">
+            <h2>Grade Gerada</h2>
+            <div id="gradeContainer"></div>
+        </section>
+
+        <!-- SOBRAS -->
+        <section class="card">
+            <h2>Aulas não alocadas</h2>
+            <ul id="aulasSobrantesList"></ul>
+        </section>
+
+    </main>
+
+    <script src="js/utils.js"></script>
+    <script src="js/grade.js"></script>
 
 </body>
 </html>
