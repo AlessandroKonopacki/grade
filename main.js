@@ -1,16 +1,18 @@
-// main.js - Código reestruturado e corrigido para a nova arquitetura
+// main.js - Reorganizado para melhor legibilidade
 document.addEventListener('DOMContentLoaded', () => {
 
+    // --- FUNÇÕES UTILITÁRIAS ---
     const carregarDados = (key) => {
-    try {
-        return JSON.parse(localStorage.getItem(key)) || [];
-    } catch {
-        return [];
-    }
-};
+        try {
+            return JSON.parse(localStorage.getItem(key)) || [];
+        } catch {
+            return [];
+        }
+    };
+
     const salvarDados = (key, data) => localStorage.setItem(key, JSON.stringify(data));
 
-    // Lógica da página de turmas.html
+    // --- LÓGICA DA PÁGINA: TURMAS.HTML ---
     const turmaForm = document.getElementById('turmaForm');
     const turmasList = document.getElementById('turmasList');
     const concluirTurmasBtn = document.getElementById('concluirTurmasBtn');
@@ -63,7 +65,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Lógica da página professores_cargas.html
+    // --- LÓGICA DA PÁGINA: PROFESSORES_CARGAS.HTML ---
     const professorForm = document.getElementById('professorForm');
     const professoresList = document.getElementById('professoresList');
     const cargaHorariaForm = document.getElementById('cargaHorariaForm');
@@ -136,7 +138,6 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             const nomeProfessor = document.getElementById('nomeProfessor').value;
             const disciplinasStr = document.getElementById('disciplinas').value;
-            // ATUALIZAÇÃO: Pega os valores dos checkboxes
             const disponibilidade = Array.from(document.querySelectorAll('input[name="disponibilidade"]:checked'))
                 .map(cb => cb.value);
             const nivelSelecionado = document.querySelector('input[name="nivel"]:checked');
@@ -155,7 +156,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         professoresList.addEventListener('click', (e) => {
             if (e.target.classList.contains('remover')) {
-                const index = e.target.getAttribute('data-index'));
+                const index = e.target.getAttribute('data-index');
                 professores.splice(index, 1);
                 renderizarProfessores();
                 popularSelects();
@@ -171,13 +172,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const limiteAulas = parseInt(document.getElementById('limiteAulas').value);
             const aulasGeminadas = document.getElementById('aulasGeminadas').checked;
 
-            if (
-                professor &&
-                turma &&
-                disciplina &&
-                !isNaN(aulasPorSemana) &&
-                !isNaN(limiteAulas)
-            ) {
+            if (professor && turma && disciplina && !isNaN(aulasPorSemana) && !isNaN(limiteAulas)) {
                 cargasHorarias.push({ professor, turma, disciplina, aulasPorSemana, limiteAulas, aulasGeminadas });
                 cargaHorariaForm.reset();
                 renderizarCargasHorarias();
@@ -206,7 +201,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    // Lógica da página grade.html (SEM ALTERAÇÕES)
+    // --- LÓGICA DA PÁGINA: GRADE.HTML ---
     const gerarGradeIABtn = document.getElementById('gerarGradeIABtn');
     const novaGradeBtn = document.getElementById('novaGradeBtn');
     const gradeTable = document.getElementById('gradeTable');
@@ -259,12 +254,6 @@ document.addEventListener('DOMContentLoaded', () => {
             const tamanhoPopulacao = parseInt(document.getElementById('tamanhoPopulacao').value);
             const taxaMutacao = parseFloat(document.getElementById('taxaMutacao').value);
 
-            const parametros = {
-                numGeracoes,
-                tamanhoPopulacao,
-                taxaMutacao
-            };
-
             const professores = carregarDados('professores');
             const cargasHorarias = carregarDados('cargasHorarias');
             const turmas = carregarDados('turmas');
@@ -275,59 +264,55 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             gerarGradeIABtn.disabled = true;
-            novaGradeBtn.disabled = true;
+            if (novaGradeBtn) novaGradeBtn.disabled = true;
             progressBarContainer.style.display = 'flex';
             progressBar.style.width = '0%';
             progressText.textContent = 'Gerando...';
 
             if (window.Worker) {
-                if (worker) {
-                    worker.terminate();
-                }
+                if (worker) worker.terminate();
+                worker = new Worker('worker.js');
+
+                worker.postMessage({ professores, cargasHorarias, turmas, parametros: { numGeracoes, tamanhoPopulacao, taxaMutacao } });
+
                 worker.onmessage = (e) => {
-                worker.postMessage({ professores, cargasHorarias, turmas, parametros });
-            } else {
-                console.error("Web Workers não são suportados neste navegador.");
-            }
+                    if (e.data.status === 'progresso') {
+                        progressBar.style.width = `${e.data.progresso}%`;
+                        progressText.textContent = `Gerando... (${e.data.progresso}%)`;
+                    } else if (e.data.status === 'completo') {
+                        progressBar.style.width = '100%';
+                        progressText.textContent = 'Completo!';
+                        renderizarGrade(e.data.grade);
+                        renderizarAulasSobrantes(e.data.aulasSobrantes);
+                        salvarDados('gradeAnterior', e.data.grade);
+                        salvarDados('aulasSobrantesAnterior', e.data.aulasSobrantes);
+                        gerarGradeIABtn.disabled = false;
+                        if (novaGradeBtn) novaGradeBtn.disabled = false;
+                    }
+                };
 
-            worker.onmessage = (e) => {
-                if (e.data.status === 'progresso') {
-                    progressBar.style.width = `${e.data.progresso}%`;
-                    progressText.textContent = `Gerando... (${e.data.progresso}%)`;
-                } else if (e.data.status === 'completo') {
-                    progressBar.style.width = '100%';
-                    progressText.textContent = 'Completo!';
-                    renderizarGrade(e.data.grade);
-                    renderizarAulasSobrantes(e.data.aulasSobrantes);
-
-                    salvarDados('gradeAnterior', e.data.grade);
-                    salvarDados('aulasSobrantesAnterior', e.data.aulasSobrantes);
-
+                worker.onerror = (e) => {
+                    console.error("Erro no Worker:", e.message);
+                    progressText.textContent = 'Erro na Geração.';
                     gerarGradeIABtn.disabled = false;
-                    novaGradeBtn.disabled = false;
-                    worker.terminate();
-                }
-            };
-
-            worker.onerror = (e) => {
-                console.error("Erro no Worker:", e.message);
-                progressText.textContent = 'Erro na Geração.';
-                gerarGradeIABtn.disabled = false;
-                novaGradeBtn.disabled = false;
-            };
+                    if (novaGradeBtn) novaGradeBtn.disabled = false;
+                };
+            } else {
+                console.error("Web Workers não são suportados.");
+            }
         });
 
-        novaGradeBtn.addEventListener('click', () => {
-            gradeTable.querySelector('tbody').innerHTML = '';
-            aulasSobrantesList.innerHTML = '';
-            progressBarContainer.style.display = 'none';
-        });
+        if (novaGradeBtn) {
+            novaGradeBtn.addEventListener('click', () => {
+                gradeTable.querySelector('tbody').innerHTML = '';
+                aulasSobrantesList.innerHTML = '';
+                progressBarContainer.style.display = 'none';
+            });
+        }
 
         const gradeSalva = carregarDados('gradeAnterior');
         const aulasSalvas = carregarDados('aulasSobrantesAnterior');
-        if (gradeSalva.length && aulasSalvas.length) {
-            renderizarGrade(gradeSalva);
-            renderizarAulasSobrantes(aulasSalvas);
-        }
+        if (gradeSalva.length > 0) renderizarGrade(gradeSalva);
+        if (aulasSalvas.length > 0) renderizarAulasSobrantes(aulasSalvas);
     }
 });
