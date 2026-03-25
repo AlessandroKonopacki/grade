@@ -58,26 +58,23 @@ const renderProfessores = () => {
 function adicionarProfessor(e) {
     e.preventDefault();
 
-    const nome = document.getElementById("nomeProfessor").value.trim();
+    // Usando sua função limparTexto do utils.js
+    const nome = limparTexto(document.getElementById("nomeProfessor").value);
+    
+    // Usando sua função stringParaLista do utils.js
     const disciplinasRaw = document.getElementById("disciplinas").value;
-    const disciplinas = disciplinasRaw.split(",").map(d => d.trim()).filter(d => d !== "");
+    const disciplinas = stringParaLista(disciplinasRaw).filter(d => d !== "");
 
-    const disponibilidade = [...document.querySelectorAll("input[name='disponibilidade']:checked")]
-        .map(el => el.value);
+    // ... restante da lógica de captura de checkbox ...
 
-    const nivel = [...document.querySelectorAll("input[name='nivel']:checked")]
-        .map(el => el.value);
+    if (nome === "") return alert("Insira um nome!");
 
-    if (nome === "" || disciplinas.length === 0) {
-        alert("Preencha o nome e ao menos uma disciplina.");
-        return;
-    }
-
-    const professores = get("professores");
+    // Usando carregarDados e salvarDados do seu novo utils.js
+    const professores = carregarDados("professores");
     professores.push({ nome, disciplinas, disponibilidade, nivel });
-    set("professores", professores);
+    salvarDados("professores", professores);
 
-    e.target.reset(); // Limpa o formulário
+    e.target.reset();
     renderProfessores();
 }
 
