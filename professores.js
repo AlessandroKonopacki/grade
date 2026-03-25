@@ -122,7 +122,7 @@ window.removerCarga = (i) => {
 // botão concluir
 document.getElementById("concluirProfessoresBtn")
 .addEventListener("click", () => {
-    window.location.href = "grade.html";
+    window.location.href = "grade2.html";
 });
 
 // ===== INIT =====
