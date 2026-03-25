@@ -1,11 +1,20 @@
-// ===== INICIALIZAÇÃO =====
-// Aguarda o DOM carregar para evitar erros de "null" ao buscar elementos
+// ===== 🚀 INICIALIZAÇÃO =====
 document.addEventListener("DOMContentLoaded", () => {
+    init();
+});
+
+function init() {
     renderProfessores();
     renderCargas();
     carregarTurmasSelect();
-    
-    // Vincula os eventos de formulário
+    bindEventos();
+}
+
+// ===============================
+// 🔗 EVENTOS
+// ===============================
+function bindEventos() {
+
     const profForm = document.getElementById("professorForm");
     if (profForm) {
         profForm.addEventListener("submit", adicionarProfessor);
@@ -22,116 +31,165 @@ document.addEventListener("DOMContentLoaded", () => {
             window.location.href = "grade2.html";
         });
     }
-});
+}
 
-// ===== PROFESSORES =====
-
-const renderProfessores = () => {
+// ===============================
+// 👨‍🏫 PROFESSORES
+// ===============================
+function renderProfessores() {
     const professores = get("professores");
-    const listaProf = document.getElementById("professoresList");
-    const selectProf = document.getElementById("professorCargaSelect");
+    const lista = document.getElementById("professoresList");
+    const select = document.getElementById("professorCargaSelect");
 
-    if (listaProf) {
-        listaProf.innerHTML = "";
+    if (lista) {
+        lista.innerHTML = "";
+
+        if (professores.length === 0) {
+            lista.innerHTML = "<p>Nenhum professor cadastrado.</p>";
+        }
+
         professores.forEach((p, i) => {
             const li = document.createElement("li");
+
             li.innerHTML = `
                 <strong>${p.nome}</strong> - ${p.disciplinas.join(", ")}
-                <button onclick="removerProfessor(${i})" class="btn-delete">❌</button>
+                <button class="btn-delete" data-index="${i}">❌</button>
             `;
-            listaProf.appendChild(li);
+
+            lista.appendChild(li);
+        });
+
+        // 🔥 Delegação de evento (melhor que onclick inline)
+        lista.addEventListener("click", (e) => {
+            if (e.target.classList.contains("btn-delete")) {
+                const i = Number(e.target.dataset.index);
+                removerProfessor(i);
+            }
         });
     }
 
-    // Atualiza o dropdown de professores no formulário de carga horária
-    if (selectProf) {
-        selectProf.innerHTML = '<option value="">Selecione um professor</option>';
+    if (select) {
+        select.innerHTML = '<option value="">Selecione um professor</option>';
+
         professores.forEach(p => {
             const option = document.createElement("option");
             option.value = p.nome;
             option.textContent = p.nome;
-            selectProf.appendChild(option);
+            select.appendChild(option);
         });
     }
-};
+}
 
 function adicionarProfessor(e) {
     e.preventDefault();
 
-    // Usando sua função limparTexto do utils.js
     const nome = limparTexto(document.getElementById("nomeProfessor").value);
-    
-    // Usando sua função stringParaLista do utils.js
-    const disciplinasRaw = document.getElementById("disciplinas").value;
-    const disciplinas = stringParaLista(disciplinasRaw).filter(d => d !== "");
 
-    // ... restante da lógica de captura de checkbox ...
+    const disciplinas = stringParaLista(
+        document.getElementById("disciplinas").value
+    ).filter(Boolean);
 
-    if (nome === "") return alert("Insira um nome!");
+    // ✅ CAPTURA CORRETA DOS CHECKBOXES
+    const disponibilidade = [...document.querySelectorAll('input[name="disponibilidade"]:checked')]
+        .map(el => el.value);
 
-    // Usando carregarDados e salvarDados do seu novo utils.js
-    const professores = carregarDados("professores");
+    const nivel = [...document.querySelectorAll('input[name="nivel"]:checked')]
+        .map(el => el.value);
+
+    if (!nome) return alert("Insira um nome!");
+    if (disciplinas.length === 0) return alert("Informe ao menos uma disciplina!");
+
+    const professores = get("professores");
+
+    // 🔒 Evitar duplicados
+    if (professores.some(p => p.nome === nome)) {
+        return alert("Professor já cadastrado!");
+    }
+
     professores.push({ nome, disciplinas, disponibilidade, nivel });
-    salvarDados("professores", professores);
+
+    set("professores", professores);
 
     e.target.reset();
     renderProfessores();
 }
 
-window.removerProfessor = (i) => {
-    if (confirm("Deseja remover este professor?")) {
-        const professores = get("professores");
-        professores.splice(i, 1);
-        set("professores", professores);
-        renderProfessores();
+function removerProfessor(i) {
+    if (!confirm("Deseja remover este professor?")) return;
+
+    const professores = get("professores");
+    professores.splice(i, 1);
+    set("professores", professores);
+
+    renderProfessores();
+}
+
+// ===============================
+// 🏫 TURMAS
+// ===============================
+function carregarTurmasSelect() {
+    const select = document.getElementById("turmaCargaSelect");
+    if (!select) return;
+
+    const turmas = get("turmas");
+
+    select.innerHTML = '<option value="">Selecione uma turma</option>';
+
+    if (turmas.length === 0) {
+        const option = document.createElement("option");
+        option.textContent = "Nenhuma turma cadastrada";
+        option.disabled = true;
+        select.appendChild(option);
+        return;
     }
-};
 
-// ===== TURMAS =====
+    turmas.forEach(t => {
+        const nome = typeof t === "object" ? t.nome : t;
 
-const carregarTurmasSelect = () => {
-    const selectTurma = document.getElementById("turmaCargaSelect");
-    if (selectTurma) {
-        const turmas = get("turmas"); // Busca as turmas cadastradas na outra página
-        selectTurma.innerHTML = '<option value="">Selecione uma turma</option>';
-        
-        if (turmas.length === 0) {
-            const option = document.createElement("option");
-            option.textContent = "Nenhuma turma cadastrada";
-            option.disabled = true;
-            selectTurma.appendChild(option);
-        } else {
-            turmas.forEach(t => {
-                const option = document.createElement("option");
-                // Verifica se t é objeto ou string (depende de como você salvou em turmas.html)
-                const nomeTurma = typeof t === 'object' ? t.nome : t;
-                option.value = nomeTurma;
-                option.textContent = nomeTurma;
-                selectTurma.appendChild(option);
-            });
-        }
-    }
-};
+        const option = document.createElement("option");
+        option.value = nome;
+        option.textContent = nome;
 
-// ===== CARGAS HORÁRIAS =====
+        select.appendChild(option);
+    });
+}
 
-const renderCargas = () => {
+// ===============================
+// 📚 CARGAS HORÁRIAS
+// ===============================
+function renderCargas() {
     const cargas = get("cargas");
-    const listaCargas = document.getElementById("cargasHorariasList");
+    const lista = document.getElementById("cargasHorariasList");
 
-    if (listaCargas) {
-        listaCargas.innerHTML = "";
-        cargas.forEach((c, i) => {
-            const li = document.createElement("li");
-            li.innerHTML = `
-                <span>${c.professor} ➔ ${c.turma} (${c.disciplina})</span>
-                <span>${c.aulas} aulas/sem | Limite: ${c.limite}</span>
-                <button onclick="removerCarga(${i})" class="btn-delete">❌</button>
-            `;
-            listaCargas.appendChild(li);
-        });
+    if (!lista) return;
+
+    lista.innerHTML = "";
+
+    if (cargas.length === 0) {
+        lista.innerHTML = "<p>Nenhuma carga cadastrada.</p>";
+        return;
     }
-};
+
+    cargas.forEach((c, i) => {
+        const li = document.createElement("li");
+
+        li.innerHTML = `
+            <span>${c.professor} ➔ ${c.turma} (${c.disciplina})</span>
+            <span>${c.aulas} aulas/sem | Limite: ${c.limite}</span>
+            <button class="btn-delete" data-index="${i}">❌</button>
+        `;
+
+        lista.appendChild(li);
+    });
+
+    // 🔥 Delegação de evento
+    lista.addEventListener("click", (e) => {
+        if (e.target.classList.contains("btn-delete")) {
+            const i = Number(e.target.dataset.index);
+            removerCarga(i);
+        }
+    });
+}
 
 function adicionarCarga(e) {
     e.preventDefault();
@@ -146,8 +204,7 @@ function adicionarCarga(e) {
     };
 
     if (!novaCarga.professor || !novaCarga.turma) {
-        alert("Selecione um professor e uma turma.");
-        return;
+        return alert("Selecione professor e turma!");
     }
 
     const cargas = get("cargas");
@@ -158,9 +215,10 @@ function adicionarCarga(e) {
     renderCargas();
 }
 
-window.removerCarga = (i) => {
+function removerCarga(i) {
     const cargas = get("cargas");
     cargas.splice(i, 1);
     set("cargas", cargas);
+
     renderCargas();
-};
+}

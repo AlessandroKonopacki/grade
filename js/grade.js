@@ -1,54 +1,80 @@
-// pegar turmas do localStorage
+// ===== DADOS =====
 const turmas = JSON.parse(localStorage.getItem("turmas")) || [];
-
 const tabela = document.getElementById("grade");
 
-// dias da semana
 const dias = ["2ª", "3ª", "4ª", "5ª", "6ª"];
+const aulasPorDia = 5;
 
-let html = "";
+// ===== VALIDAÇÃO =====
+if (!tabela) {
+    console.error("Tabela não encontrada!");
+}
 
-// ===== CABEÇALHO =====
-html += "<thead>";
+if (turmas.length === 0) {
+    tabela.innerHTML = "<p>Nenhuma turma cadastrada.</p>";
+    return;
+}
 
-html += `
-<tr>
-<th colspan="${turmas.length + 1}">
-GRADE HORÁRIA
-</th>
-</tr>
-`;
+// ===== FUNÇÕES =====
 
-html += "<tr><th></th>";
+function criarCabecalho() {
+    const thead = document.createElement("thead");
 
-turmas.forEach(t => {
-    html += `<th>${t}</th>`;
-});
+    // título
+    const trTitulo = document.createElement("tr");
+    const thTitulo = document.createElement("th");
 
-html += "</tr></thead><tbody>";
+    thTitulo.colSpan = turmas.length + 1;
+    thTitulo.textContent = "GRADE HORÁRIA";
 
-// ===== CORPO =====
-dias.forEach(dia => {
+    trTitulo.appendChild(thTitulo);
+    thead.appendChild(trTitulo);
 
-    for (let i = 0; i < 5; i++) {
+    // linha das turmas
+    const trTurmas = document.createElement("tr");
+    trTurmas.appendChild(document.createElement("th"));
 
-        html += "<tr>";
+    turmas.forEach(turma => {
+        const th = document.createElement("th");
+        th.textContent = turma;
+        trTurmas.appendChild(th);
+    });
 
-        // primeira linha do dia
-        if (i === 0) {
-            html += `<td rowspan="5">${dia}</td>`;
+    thead.appendChild(trTurmas);
+
+    return thead;
+}
+
+function criarCorpo() {
+    const tbody = document.createElement("tbody");
+
+    dias.forEach(dia => {
+        for (let i = 0; i < aulasPorDia; i++) {
+
+            const tr = document.createElement("tr");
+
+            if (i === 0) {
+                const tdDia = document.createElement("td");
+                tdDia.rowSpan = aulasPorDia;
+                tdDia.textContent = dia;
+                tr.appendChild(tdDia);
+            }
+
+            turmas.forEach(() => {
+                const td = document.createElement("td");
+                tr.appendChild(td);
+            });
+
+            tbody.appendChild(tr);
         }
+    });
 
-        turmas.forEach(() => {
-            html += "<td></td>";
-        });
+    return tbody;
+}
 
-        html += "</tr>";
-    }
+// ===== RENDER =====
 
-});
+tabela.innerHTML = ""; // limpa antes
 
-// fechar tabela
-html += "</tbody>";
-
-tabela.innerHTML = html;
+tabela.appendChild(criarCabecalho());
+tabela.appendChild(criarCorpo());
