@@ -61,7 +61,7 @@ window.removerTurma = (index) => {
 
 // botão concluir
 btnConcluir.addEventListener("click", () => {
-    window.location.href = "grade2.html";
+    window.location.href = "professores_cargas.html";
 });
 
 // ===== INICIAR =====
