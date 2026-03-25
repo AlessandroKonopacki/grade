@@ -1,113 +1,61 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-<meta charset="UTF-8">
-<title>Grade Horária 2026</title>
-
-<style>
-body { background-color: #f0f0f0; padding: 20px; }
-table { width: 100%; border-collapse: collapse; font-family: Arial, sans-serif; font-size: 10px; background-color: white; }
-th, td { border: 1px solid #333; text-align: center; padding: 3px; height: 25px; font-weight: bold; }
-
-.topo-geral { background-color: #d9ead3; font-size: 14px; }
-.turmas-header { background-color: #f3f3f3; }
-.dia-col { background-color: #efefef; width: 30px; font-size: 18px; border-right: 2px solid #000; }
-.spacer td { background-color: #999; height: 10px; }
-</style>
-
+    <meta charset="UTF-8">
+    <title>Grade Horária</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-<table>
+<nav class="main-nav">
+    <a href="index.html">Página Inicial</a>
+    <a href="turmas.html">Cadastro de Turmas</a>
+    <a href="professores_cargas.html">Professores e Cargas</a>
+    <a href="grade.html">Grade Horária</a>
+</nav>
 
-<thead>
-<tr class="topo-geral">
-<th colspan="8">MANHÃ - COLÉGIO ALBANO GUIMARÃES - 2026</th>
-</tr>
+<div class="container">
+    <h1>Gerar Grade Horária</h1>
 
-<tr class="turmas-header">
-<th></th>
-<th>6º</th>
-<th>7º</th>
-<th>8º</th>
-<th>9º</th>
-<th>1ª</th>
-<th>2ª</th>
-<th>3ª</th>
-</tr>
-</thead>
+    <!-- CONFIGURAÇÃO -->
+    <div class="card">
+        <h2>Parâmetros</h2>
 
-<tbody>
+        <label>Gerações:</label>
+        <input type="number" id="numGeracoes" value="100">
 
-<!-- SEGUNDA -->
-<tr>
-<td rowspan="5" class="dia-col">2ª</td>
-<td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-</tr>
-<tr>
-<td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-</tr>
-<tr>
-<td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-</tr>
-<tr>
-<td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-</tr>
-<tr>
-<td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-</tr>
+        <label>População:</label>
+        <input type="number" id="tamanhoPopulacao" value="50">
 
-<tr class="spacer"><td colspan="8"></td></tr>
+        <label>Taxa de Mutação:</label>
+        <input type="number" id="taxaMutacao" step="0.01" value="0.1">
+    </div>
 
-<!-- TERÇA -->
-<tr>
-<td rowspan="5" class="dia-col">3ª</td>
-<td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-</tr>
-<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+    <!-- BOTÕES -->
+    <div class="btn-group">
+        <button id="gerarGradeIABtn">Gerar Grade</button>
+        <button id="novaGradeBtn">Limpar</button>
+    </div>
 
-<tr class="spacer"><td colspan="8"></td></tr>
+    <!-- PROGRESSO -->
+    <div class="progress-bar-container" style="display:none;">
+        <div class="progress-bar"></div>
+        <span class="progress-text"></span>
+    </div>
 
-<!-- QUARTA -->
-<tr>
-<td rowspan="5" class="dia-col">4ª</td>
-<td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-</tr>
-<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
+    <!-- RESULTADO -->
+    <div id="gradeContainer"></div>
 
-<tr class="spacer"><td colspan="8"></td></tr>
+    <!-- SOBRAS -->
+    <div class="card">
+        <h2>Aulas não alocadas</h2>
+        <ul id="aulasSobrantesList"></ul>
+    </div>
+</div>
 
-<!-- QUINTA -->
-<tr>
-<td rowspan="5" class="dia-col">5ª</td>
-<td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-</tr>
-<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-
-<tr class="spacer"><td colspan="8"></td></tr>
-
-<!-- SEXTA -->
-<tr>
-<td rowspan="5" class="dia-col">6ª</td>
-<td></td><td></td><td></td><td></td><td></td><td></td><td></td>
-</tr>
-<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-<tr><td></td><td></td><td></td><td></td><td></td><td></td><td></td></tr>
-
-</tbody>
-
-</table>
+<!-- JS -->
+<script src="js/utils.js"></script>
+<script src="js/grade.js"></script>
 
 </body>
 </html>
