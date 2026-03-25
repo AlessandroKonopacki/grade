@@ -1,7 +1,13 @@
 // main.js - Código reestruturado e corrigido para a nova arquitetura
 document.addEventListener('DOMContentLoaded', () => {
 
-    const carregarDados = (key) => JSON.parse(localStorage.getItem(key)) || [];
+    const carregarDados = (key) => {
+    try {
+        return JSON.parse(localStorage.getItem(key)) || [];
+    } catch {
+        return [];
+    }
+};
     const salvarDados = (key, data) => localStorage.setItem(key, JSON.stringify(data));
 
     // Lógica da página de turmas.html
@@ -41,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         turmasList.addEventListener('click', (e) => {
             if (e.target.classList.contains('remover')) {
-                const index = e.target.getAttribute('data-index');
+                const index = parseInt(e.target.getAttribute('data-index'));
                 turmas.splice(index, 1);
                 renderizarTurmas();
             }
@@ -132,9 +138,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const disciplinasStr = document.getElementById('disciplinas').value;
             // ATUALIZAÇÃO: Pega os valores dos checkboxes
             const disponibilidade = Array.from(document.querySelectorAll('input[name="disponibilidade"]:checked'))
-                                      .map(cb => cb.value);
-            const nivelEnsino = document.querySelector('input[name="nivel"]:checked').value;
-            
+                .map(cb => cb.value);
+            const nivelSelecionado = document.querySelector('input[name="nivel"]:checked');
+            const nivelEnsino = nivelSelecionado ? nivelSelecionado.value : null;
+
             if (nomeProfessor && disciplinasStr && disponibilidade.length > 0 && nivelEnsino) {
                 const disciplinas = disciplinasStr.split(',').map(d => d.trim());
                 professores.push({ nome: nomeProfessor, disciplinas, disponibilidade, nivel: nivelEnsino });
@@ -148,7 +155,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         professoresList.addEventListener('click', (e) => {
             if (e.target.classList.contains('remover')) {
-                const index = e.target.getAttribute('data-index');
+                const index = e.target.getAttribute('data-index'));
                 professores.splice(index, 1);
                 renderizarProfessores();
                 popularSelects();
@@ -164,7 +171,13 @@ document.addEventListener('DOMContentLoaded', () => {
             const limiteAulas = parseInt(document.getElementById('limiteAulas').value);
             const aulasGeminadas = document.getElementById('aulasGeminadas').checked;
 
-            if (professor && turma && disciplina && aulasPorSemana && limiteAulas) {
+            if (
+                professor &&
+                turma &&
+                disciplina &&
+                !isNaN(aulasPorSemana) &&
+                !isNaN(limiteAulas)
+            ) {
                 cargasHorarias.push({ professor, turma, disciplina, aulasPorSemana, limiteAulas, aulasGeminadas });
                 cargaHorariaForm.reset();
                 renderizarCargasHorarias();
@@ -184,7 +197,7 @@ document.addEventListener('DOMContentLoaded', () => {
         renderizarProfessores();
         renderizarCargasHorarias();
         popularSelects();
-        
+
         if (concluirProfessoresBtn) {
             concluirProfessoresBtn.addEventListener('click', () => {
                 alert('Cadastro de professores e cargas horárias concluído!');
@@ -210,7 +223,7 @@ document.addEventListener('DOMContentLoaded', () => {
             tbody.innerHTML = '';
             const diasSemana = ['Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta'];
             const horariosPorDia = 6;
-            
+
             for (let h = 0; h < horariosPorDia; h++) {
                 const tr = document.createElement('tr');
                 const th = document.createElement('th');
@@ -260,7 +273,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 alert('Por favor, cadastre turmas, professores e cargas horárias antes de gerar a grade.');
                 return;
             }
-            
+
             gerarGradeIABtn.disabled = true;
             novaGradeBtn.disabled = true;
             progressBarContainer.style.display = 'flex';
@@ -271,9 +284,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (worker) {
                     worker.terminate();
                 }
-                worker = new Worker('worker.js');
-
-                // Envia dados para o worker
+                worker.onmessage = (e) => {
                 worker.postMessage({ professores, cargasHorarias, turmas, parametros });
             } else {
                 console.error("Web Workers não são suportados neste navegador.");
@@ -314,7 +325,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const gradeSalva = carregarDados('gradeAnterior');
         const aulasSalvas = carregarDados('aulasSobrantesAnterior');
-        if (gradeSalva && aulasSalvas) {
+        if (gradeSalva.length && aulasSalvas.length) {
             renderizarGrade(gradeSalva);
             renderizarAulasSobrantes(aulasSalvas);
         }
