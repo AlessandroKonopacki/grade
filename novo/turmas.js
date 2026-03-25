@@ -1,34 +1,35 @@
-// ===== TURMAS =====
+// ===== ELEMENTOS =====
 const form = document.getElementById("turmaForm");
 const input = document.getElementById("nomeTurma");
 const lista = document.getElementById("turmasList");
+const btnConcluir = document.getElementById("concluirTurmasBtn");
 
-// Carregar turmas
+// ===== FUNÇÕES =====
 const carregarTurmas = () => {
     return JSON.parse(localStorage.getItem("turmas")) || [];
 };
 
-// Salvar turmas
 const salvarTurmas = (turmas) => {
     localStorage.setItem("turmas", JSON.stringify(turmas));
 };
 
-// Renderizar lista
 const renderizarTurmas = () => {
     const turmas = carregarTurmas();
     lista.innerHTML = "";
 
     turmas.forEach((turma, index) => {
         const li = document.createElement("li");
+
         li.innerHTML = `
             ${turma}
             <button onclick="removerTurma(${index})">❌</button>
         `;
+
         lista.appendChild(li);
     });
 };
 
-// Adicionar turma
+// ===== EVENTOS =====
 form.addEventListener("submit", (e) => {
     e.preventDefault();
 
@@ -36,14 +37,21 @@ form.addEventListener("submit", (e) => {
     if (!nome) return;
 
     const turmas = carregarTurmas();
-    turmas.push(nome);
 
+    // evitar duplicado
+    if (turmas.includes(nome)) {
+        alert("Essa turma já foi cadastrada!");
+        return;
+    }
+
+    turmas.push(nome);
     salvarTurmas(turmas);
+
     input.value = "";
     renderizarTurmas();
 });
 
-// Remover turma
+// remover turma
 window.removerTurma = (index) => {
     const turmas = carregarTurmas();
     turmas.splice(index, 1);
@@ -51,11 +59,10 @@ window.removerTurma = (index) => {
     renderizarTurmas();
 };
 
-// Botão concluir
-document.getElementById("concluirTurmasBtn")
-.addEventListener("click", () => {
+// botão concluir
+btnConcluir.addEventListener("click", () => {
     window.location.href = "grade.html";
 });
 
-// Inicializar
+// ===== INICIAR =====
 renderizarTurmas();
