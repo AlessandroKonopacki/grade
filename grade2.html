@@ -2,36 +2,38 @@
 <html lang="pt-br">
 <head>
     <meta charset="UTF-8">
-    <title>Grade Horária 2026</title>
+    <title>Grade Horária Col. Est. Albano Guimarães - 2026</title>
     <style>
-        table { width: 100%; border-collapse: collapse; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 11px; table-layout: fixed; }
-        th, td { border: 1px solid #000; text-align: center; padding: 4px; overflow: hidden; word-wrap: break-word; }
+        body { background-color: #f0f0f0; padding: 20px; }
+        table { width: 100%; border-collapse: collapse; font-family: 'Arial Narrow', Arial, sans-serif; font-size: 10px; background-color: white; }
+        th, td { border: 1px solid #333; text-align: center; padding: 3px; height: 25px; text-transform: uppercase; font-weight: bold; }
         
         /* Cabeçalhos */
-        .topo { background-color: #d9ead3; font-weight: bold; font-size: 14px; }
-        .turmas { background-color: #f3f3f3; font-weight: bold; }
-        .dia-col { background-color: #efefef; width: 30px; font-weight: bold; font-size: 16px; }
+        .topo-geral { background-color: #d9ead3; font-size: 14px; }
+        .turmas-header { background-color: #f3f3f3; }
+        .dia-col { background-color: #efefef; width: 30px; font-size: 18px; border-right: 2px solid #000; }
+        .spacer { background-color: #999; height: 10px; }
 
-        /* Cores das Disciplinas (Mapeamento da Imagem) */
-        .port-jaine { background-color: #fce5cd; } /* Bege/Laranja */
-        .port-paula { background-color: #fff2cc; } /* Amarelo */
-        .ingles-juliana { background-color: #00ffff; } /* Ciano */
-        .recom-lp { background-color: #d5a6bd; } /* Rosa/Roxo */
-        .mat-fabielli { background-color: #ffffff; } /* Branco/Padrão */
-        .geo-paulo { background-color: #76a5af; color: white; } /* Azul Petróleo */
-        .cien-adriano { background-color: #d0e0e3; color: #777; } /* Cinza Azulado (Letra Clara) */
-        .arte-celina { background-color: #ffffff; } /* Branco */
+        /* Classes de Cores (Fidelidade à imagem) */
+        .c-amarelo { background-color: #fff2cc; } /* Português Paula */
+        .c-bege { background-color: #fce5cd; }    /* Português Jaine */
+        .c-ciano { background-color: #00ffff; }    /* Inglês Juliana */
+        .c-rosa { background-color: #d5a6bd; }     /* Recom/Rec LP */
+        .c-azul-escuro { background-color: #76a5af; color: white; } /* Geografia Paulo */
+        .c-cinza-claro { background-color: #d0e0e3; color: #777; font-weight: normal; } /* Ciências Adriano */
+        .c-verde-claro { background-color: #d9ead3; } /* Cabeçalho de dias */
+        .txt-vermelho { color: #cc0000; } /* Ed. Financeira / Química */
     </style>
 </head>
 <body>
 
 <table>
     <thead>
-        <tr class="topo">
+        <tr class="topo-geral">
             <th colspan="8">MANHÃ-COL. EST. DO CAMPO PREFEITO ALBANO GUIMARÃES MARTINS-ENSINO FUNDAMENTAL E MÉDIO -2026</th>
         </tr>
-        <tr class="turmas">
-            <th style="width: 40px;"></th>
+        <tr class="turmas-header">
+            <th></th>
             <th>6º ANO A</th>
             <th>7º ANO A</th>
             <th>8º ANO A</th>
@@ -44,64 +46,223 @@
     <tbody>
         <tr>
             <td rowspan="5" class="dia-col">2ª</td>
-            <td class="port-jaine">LING. PORT. - JAINE</td>
-            <td class="ingles-juliana">RED/LEIT - JULIANA</td>
-            <td class="cien-adriano">CIÊNCIAS ADRIANO</td>
-            <td class="mat-fabielli">MATEMÁTICA-FABIELLI</td>
-            <td>HIST.PARANÁ-CELINA</td>
+            <td class="c-bege">LING. PORT. - JAINE</td>
+            <td class="c-ciano">RED/LEIT - JULIANA</td>
+            <td class="c-cinza-claro">CIENCIAS ADRIANO</td>
+            <td>MATEMATICA-FABIELLI</td>
+            <td>HIST.PARANA-CELINA</td>
             <td>HISTÓRIA -LURDES</td>
-            <td class="geo-paulo">GEO.J - PAULO</td>
+            <td class="c-azul-escuro">GEO.J - PAULO</td>
         </tr>
         <tr>
-            <td class="ingles-juliana">L. INGLESA - JULIANA</td>
-            <td class="cien-adriano">CIÊNCIAS ADRIANO</td>
-            <td class="recom-lp">RED/LEIT - FRANCIELI</td>
-            <td class="port-paula">LING. PORT. - PAULA</td>
-            <td class="port-jaine">LING. PORT. - JAINE</td>
-            <td style="color:red">ED.FINAN - FABIELLI</td>
-            <td>HISTÓRIA I-CELINA</td>
+            <td class="c-ciano">L. INGLESA - JULIANA</td>
+            <td class="c-cinza-claro">CIENCIAS ADRIANO</td>
+            <td class="c-rosa">RED/LEIT - FRANCIELI</td>
+            <td class="c-amarelo">LING. PORT. - PAULA</td>
+            <td class="c-bege">LING. PORT. - JAINE</td>
+            <td class="txt-vermelho">ED.FINAN - FABIELLI</td>
+            <td>HISTORIA I-CELINA</td>
         </tr>
         <tr>
-            <td class="recom-lp">L. REC. LP - FRAN/PAULA</td>
-            <td class="cien-adriano">CIÊNCIAS - ADRIANO</td>
-            <td class="ingles-juliana">L. INGLESA - JULIANA</td>
-            <td class="mat-fabielli">MATEMÁTICA-FABIELLI</td>
+            <td class="c-rosa">L. REC. LP - FRAN/PAULA</td>
+            <td class="c-cinza-claro">CIENCIAS ADRIANO</td>
+            <td class="c-ciano">L. INGLESA - JULIANA</td>
+            <td class="mat-fabielli">MATEMATICA-FABIELLI</td>
             <td>GEOPARANA-LURDES</td>
-            <td>LIT. e PROD.TEX.-JAINE</td>
+            <td class="c-rosa">LIT. e PROD.TEX.-JAINE</td>
             <td>ARTEII-CELINA</td>
         </tr>
         <tr>
-            <td class="mat-fabielli">MATEMÁTICA-FABIELLI</td>
-            <td class="port-paula">LING. PORT. - PAULA</td>
-            <td class="cien-adriano">CIÊNCIAS - ADRIANO</td>
-            <td class="ingles-juliana">L. INGLESA - JULIANA</td>
-            <td class="port-jaine">LING. PORT. - JAINE</td>
-            <td class="geo-paulo">SOC.GOV.CID - CELINA</td>
-            <td class="recom-lp">RECOMP. L.P. - FRAN</td>
+            <td>MATEMATICA-FABIELLI</td>
+            <td class="c-amarelo">LING. PORT. PAULA</td>
+            <td class="c-cinza-claro">CIENCIAS ADRIANO</td>
+            <td class="c-ciano">L. INGLESA - JULIANA</td>
+            <td class="c-bege">LING. PORT. - JAINE</td>
+            <td class="c-azul-escuro">SOC.GOV.CID - CELINA</td>
+            <td class="c-rosa">RECOMP. L.P. FRAN</td>
         </tr>
         <tr>
-            <td class="port-jaine">LING. PORT. - JAINE</td>
+            <td class="c-bege">LING. PORT. - JAINE</td>
             <td>HISTÓRIA - LURDES</td>
-            <td class="geo-paulo">GEOGRAFIA - PAULO</td>
-            <td class="recom-lp">LEIT.REC.LP - FRANCIELI</td>
+            <td class="c-azul-escuro">GEOGRAFIA- PAULO</td>
+            <td class="c-rosa">LEIT.REC.LP -FRANCIELI</td>
             <td>ARTEPARANA-CELINA</td>
-            <td class="ingles-juliana">L. INGLESA - JULIANA</td>
-            <td style="color:red">ED.FINAN-FABIELLI</td>
+            <td class="c-ciano">L. INGLESA - JULIANA</td>
+            <td class="txt-vermelho">ED.FINAN-FABIELLI</td>
         </tr>
 
-        <tr style="background-color: #cccccc; height: 5px;"><td colspan="8"></td></tr>
+        <tr class="spacer"><td colspan="8"></td></tr>
 
-        <tr>
+        <tr style="background-color: #d9ead3;">
             <td rowspan="5" class="dia-col">3ª</td>
-            <td class="cien-adriano">CIÊNCIAS ADRIANO</td>
-            <td class="ingles-juliana">L. INGLESA JULIANA</td>
-            <td class="port-paula">LING. PORT. PAULA</td>
-            <td>ED. FÍSICA - MIGUEL</td>
-            <td class="port-jaine">LING. PORT. - JAINE</td>
-            <td>HISTÓRIA - LURDES</td>
-            <td>PROJ. V. CELINA</td>
+            <td>6º ANO A</td><td>7º ANO A</td><td>8º ANO A</td><td>9º ANO A</td><td>1ª SÉRIE A</td><td>2ª SÉRIE A</td><td>3ª SÉRIE A</td>
         </tr>
-        </tbody>
+        <tr>
+            <td class="c-cinza-claro">CIENCIAS -ADRIANO</td>
+            <td class="c-ciano">L. INGLESA JULIANA</td>
+            <td class="c-amarelo">LING. PORT. PAULA</td>
+            <td>ED. FISICA -MIGUEL</td>
+            <td class="c-bege">LING. PORT. -JAINE</td>
+            <td>HISTORIA -LURDES</td>
+            <td class="c-azul-escuro">PROJ. V. CELINA</td>
+        </tr>
+        <tr>
+            <td class="c-bege">LING. PORT. -JAINE</td>
+            <td class="txt-vermelho">MATEMATICA-MATHEUS</td>
+            <td>ED. FISICA MIGUEL</td>
+            <td class="c-rosa">REC. MAT- LINO/ALE</td>
+            <td>MATEMATICA-FABIELLI</td>
+            <td class="c-ciano">L. INGLESA-JULIANA</td>
+            <td class="c-amarelo">LING. PORT. PAULA</td>
+        </tr>
+        <tr>
+            <td>HISTORIA -LURDES</td>
+            <td class="txt-vermelho">MATEMATICA-MATHEUS</td>
+            <td class="c-amarelo">LING. PORT. PAULA</td>
+            <td class="c-cinza-claro">CIENCIAS -ADRIANO</td>
+            <td class="c-ciano">L. INGLESA-JULIANA</td>
+            <td>MATEMATICA -LINO</td>
+            <td class="c-rosa">REC. MAT- FABIELI</td>
+        </tr>
+        <tr>
+            <td class="c-bege">LING. PORT. -JAINE</td>
+            <td class="c-amarelo">LING. PORT, PAULA</td>
+            <td>MATEMATICA-LINO</td>
+            <td>MATEMATICA FABIELLI</td>
+            <td>ARTE - LURDES</td>
+            <td class="c-azul-escuro">SOC.GOV.CID-CELINA</td>
+            <td class="c-ciano">L.INGLESA-JULIANA</td>
+        </tr>
+
+        <tr class="spacer"><td colspan="8"></td></tr>
+
+        <tr style="background-color: #d9ead3;">
+            <td rowspan="5" class="dia-col">4ª</td>
+            <td>6º ANO A</td><td>7º ANO A</td><td>8º ANO A</td><td>9º ANO A</td><td>1ª SÉRIE A</td><td>2ª SÉRIE A</td><td>3ª SÉRIE A</td>
+        </tr>
+        <tr>
+            <td class="c-cinza-claro">CIENCIAS ADRIANO</td>
+            <td class="c-azul-escuro">GEOGRAFIA -PAULO</td>
+            <td class="c-ciano">L. INGLESA JULIANA</td>
+            <td>ARTE-CELINA</td>
+            <td class="txt-vermelho">ED.FINAN-FABIELLI</td>
+            <td>ED. FISICA -MIGUEL</td>
+            <td class="c-amarelo">LING. PORT. PAULA</td>
+        </tr>
+        <tr>
+            <td class="c-azul-escuro">GEOGRAFIA-PAULO</td>
+            <td class="c-ciano">RED/LEIT JULIANA</td>
+            <td>ED. FISICA MIGUEL</td>
+            <td class="c-cinza-claro">CIENCIAS ADRIANO</td>
+            <td class="txt-vermelho">QUIMICA LUCINEIA</td>
+            <td class="c-amarelo">LING. PORT, PAULA</td>
+            <td class="c-rosa">REC. MAT- FABIELLI</td>
+        </tr>
+        <tr>
+            <td>MATEMATICA FABIELLI</td>
+            <td class="c-cinza-claro">CIENCIAS ADRIANO</td>
+            <td>ARTE-CELINA</td>
+            <td class="c-ciano">L. INGLESA JULIANA</td>
+            <td class="c-azul-escuro">GEOGRAFIA- PAULO</td>
+            <td class="c-amarelo">LING. PORT, PAULA</td>
+            <td>ED. FISICA -MIGUEL</td>
+        </tr>
+        <tr>
+            <td class="c-ciano">L. INGLESA -JULIANA</td>
+            <td>ARTE-CELINA</td>
+            <td class="c-amarelo">LING. PORT PAULA</td>
+            <td>MATEMATICA-FABIELLI</td>
+            <td>ED. FISICA -MIGUEL</td>
+            <td>FILOSOFIA-JOCEMAR</td>
+            <td class="c-azul-escuro">GEO.I-PAULO</td>
+        </tr>
+
+        <tr class="spacer"><td colspan="8"></td></tr>
+
+        <tr style="background-color: #d9ead3;">
+            <td rowspan="5" class="dia-col">5ª</td>
+            <td>6º ANO A</td><td>7º ANO A</td><td>8º ANO A</td><td>9º ANO A</td><td>1ª SÉRIE A</td><td>2ª SÉRIE A</td><td>3ª SÉRIE A</td>
+        </tr>
+        <tr>
+            <td class="c-azul-escuro">ENS. REL -PAULO</td>
+            <td class="c-azul-escuro">GEOGRAFIA-PAULO</td>
+            <td>ARTE-CELINA</td>
+            <td class="c-rosa">REC. MAT- LINO/ALE</td>
+            <td>GEOPARANA-LURDES</td>
+            <td class="c-amarelo">LING. PORT. PAULA</td>
+            <td>SOCI -MATILDE</td>
+        </tr>
+        <tr>
+            <td class="c-rosa">REC. MAT. LINO/FABI</td>
+            <td class="txt-vermelho">MATEMATICA-MATHEUS</td>
+            <td>HISTORIA -LURDES</td>
+            <td class="c-amarelo">LING. PORT. PAULA</td>
+            <td>BIOLOGIA-LUCINEIA</td>
+            <td>SOCIOLOGIA-MATILDE</td>
+            <td>FISICA-ALESSANDRO</td>
+        </tr>
+        <tr>
+            <td>ARTE-PAULA</td>
+            <td>ARTE-CELINA</td>
+            <td>HISTORIA-LURDES</td>
+            <td>ARTE-CELINA</td>
+            <td>MATEMATICA-FABIELLI</td>
+            <td>FISICA-ALESSANDRO</td>
+            <td>MATEMATICA -LINO</td>
+        </tr>
+        <tr>
+            <td>MATEMATICA-FABIELLI</td>
+            <td class="txt-vermelho">MATEMATICA-MATHEUS</td>
+            <td>ED. DIG- ALESSANDRO</td>
+            <td>HISTORIA-LURDES</td>
+            <td class="txt-vermelho">QUIMICA-LUCINEIA</td>
+            <td>MATEMATICA -LINO</td>
+            <td>MATEMATICA -LINO</td>
+        </tr>
+
+        <tr class="spacer"><td colspan="8"></td></tr>
+
+        <tr style="background-color: #d9ead3;">
+            <td rowspan="5" class="dia-col">6ª</td>
+            <td>6º ANO A</td><td>7º ANO A</td><td>8º ANO A</td><td>9º ANO A</td><td>1ª SÉRIE A</td><td>2ª SÉRIE A</td><td>3ª SÉRIE A</td>
+        </tr>
+        <tr>
+            <td class="c-azul-escuro">GEOGRAFIA- PAULO</td>
+            <td>HISTORIA -LURDES</td>
+            <td>MATEMATICA-LINO</td>
+            <td>ED. FISICA MIGUEL</td>
+            <td class="c-ciano">L. INGLESA -JULIANA</td>
+            <td>FIL. A. T. FIL..-MATILDE</td>
+            <td>FISICA-ALESSANDRO</td>
+        </tr>
+        <tr>
+            <td class="c-rosa">L. REC. LP -FRAN/PAULA</td>
+            <td class="c-ciano">LING. INGLESA-JULIANA</td>
+            <td>MATEMATICA-LINO</td>
+            <td class="c-amarelo">LING. PORT. PAULA</td>
+            <td>GEOPARANA-LURDES</td>
+            <td>ARTE-LURDES</td>
+            <td>SOCI I-MATILDE</td>
+        </tr>
+        <tr>
+            <td class="c-rosa">RECOM. MAT- LINO/FABI</td>
+            <td class="c-azul-escuro">GEOGRAFIA-PAULO</td>
+            <td>HISTORIA-LURDES</td>
+            <td class="c-rosa">LEIT.REC LP -FRAN</td>
+            <td>ED. DIG- ALESSANDRO</td>
+            <td class="c-amarelo">LING. PORT-PAULA</td>
+            <td class="c-ciano">L INGLESA I-JULIANA</td>
+        </tr>
+        <tr>
+            <td>ED. FISICA -MIGUEL</td>
+            <td class="c-amarelo">LING. PORT. -PAULA</td>
+            <td class="c-azul-escuro">GEOGRAFIA- PAULO</td>
+            <td>HISTÓRIA-LURDES</td>
+            <td>ED. DIG- ALESSANDRO</td>
+            <td>MATEMATICA -LINO</td>
+            <td class="c-rosa">RECOMP. L.P FRAN</td>
+        </tr>
+    </tbody>
 </table>
 
 </body>
