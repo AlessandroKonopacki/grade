@@ -61,7 +61,7 @@ window.removerTurma = (index) => {
 
 // botão concluir
 btnConcluir.addEventListener("click", () => {
-    window.location.href = "grade.html";
+    window.location.href = "grade2.html";
 });
 
 // ===== INICIAR =====
